@@ -30,7 +30,7 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**", "/login.html", "/index.html", "/", "/*.css", "/*.js").permitAll()
+                .requestMatchers("/api/auth/**", "/api/words/dict-proxy/**", "/login.html", "/index.html", "/", "/*.css", "/*.js").permitAll()
                 .requestMatchers("/api/admin/**").authenticated()
                 .anyRequest().authenticated()
             )
