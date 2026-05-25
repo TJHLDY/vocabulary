@@ -19,7 +19,9 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.regex.Pattern;
 
@@ -274,5 +276,42 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             inviteCodeMapper.insert(ic);
         }
         return codes;
+    }
+
+    @Override
+    public void changePassword(Long userId, String oldPassword, String newPassword) {
+        User user = baseMapper.selectById(userId);
+        if (user == null) throw new RuntimeException("用户不存在");
+        if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
+            throw new RuntimeException("原密码错误");
+        }
+        if (newPassword.length() < 6) throw new RuntimeException("新密码至少6位");
+        user.setPassword(passwordEncoder.encode(newPassword));
+        user.setUpdatedAt(new Date());
+        baseMapper.updateById(user);
+    }
+
+    @Override
+    public Map<String, Object> getProfile(Long userId) {
+        User user = baseMapper.selectById(userId);
+        if (user == null) throw new RuntimeException("用户不存在");
+        Map<String, Object> map = new HashMap<>();
+        map.put("id", user.getId());
+        map.put("username", user.getUsername());
+        map.put("email", user.getEmail());
+        map.put("role", user.getRole());
+        map.put("avatarUrl", user.getAvatarUrl());
+        map.put("createdAt", user.getCreatedAt());
+        return map;
+    }
+
+    @Override
+    public String updateAvatar(Long userId, String avatarUrl) {
+        User user = baseMapper.selectById(userId);
+        if (user == null) throw new RuntimeException("用户不存在");
+        user.setAvatarUrl(avatarUrl);
+        user.setUpdatedAt(new Date());
+        baseMapper.updateById(user);
+        return avatarUrl;
     }
 }

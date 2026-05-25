@@ -43,4 +43,6 @@ public class User implements Serializable {
     private Long seenBulletinId;
     @TableField("last_active_at")
     private Date lastActiveAt;
+    @TableField("avatar_url")
+    private String avatarUrl;
 }

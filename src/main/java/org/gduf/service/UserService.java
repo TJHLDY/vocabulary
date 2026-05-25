@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import org.gduf.entity.User;
 
 import java.util.List;
+import java.util.Map;
 
 public interface UserService extends IService<User> {
     User register(String username, String email, String password, String code, String inviteCode);
@@ -17,4 +18,7 @@ public interface UserService extends IService<User> {
     void grantTester(Long userId);
     void revokeTester(Long userId);
     List<String> generateCodesForTester(Long testerId, int count);
+    void changePassword(Long userId, String oldPassword, String newPassword);
+    Map<String, Object> getProfile(Long userId);
+    String updateAvatar(Long userId, String avatarUrl);
 }

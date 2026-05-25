@@ -1130,6 +1130,46 @@
   .bulletin-dialog .btn-ack:hover { background: var(--accent-hover); }
   @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
   @keyframes slideUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+  /* ---- Header Avatar ---- */
+  .btn-avatar { background: none; border: none; padding: 0; cursor: pointer; }
+  .avatar-circle { display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 50%; color: #fff; font-weight: 700; font-size: 0.9rem; letter-spacing: 0; }
+  .header-avatar-img { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; }
+  /* ---- Profile Sidebar ---- */
+  .profile-section { text-align: center; padding: 0 0 16px; }
+  .profile-avatar-wrap { position: relative; display: inline-block; width: 80px; height: 80px; border-radius: 50%; cursor: pointer; overflow: hidden; margin-bottom: 12px; }
+  .profile-avatar-circle { display: flex; align-items: center; justify-content: center; width: 80px; height: 80px; border-radius: 50%; color: #fff; font-weight: 700; font-size: 2rem; }
+  .profile-avatar-img { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; }
+  .profile-avatar-overlay { position: absolute; inset: 0; border-radius: 50%; background: rgba(0,0,0,0.35); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s; font-size: 1.5rem; color: #fff; }
+  .profile-avatar-wrap:hover .profile-avatar-overlay { opacity: 1; }
+  .profile-name { font-size: 1.1rem; font-weight: 700; color: var(--ink); margin-bottom: 4px; }
+  .profile-email { font-size: 0.8rem; color: var(--ink-light); margin-bottom: 8px; }
+  .profile-role-row { display: flex; justify-content: center; }
+  .profile-role-tag { display: inline-block; padding: 2px 10px; border-radius: 10px; font-size: 0.72rem; font-weight: 600; background: var(--accent-light, #e8e0d5); color: var(--accent, #6b5b3a); }
+  .profile-role-admin { background: #f0d6d6; color: #a04040; }
+  .profile-role-tester { background: #d6e0f0; color: #3a5a8b; }
+  .profile-divider { height: 1px; background: var(--border); margin: 16px 0 12px; }
+  .profile-btn { display: block; width: 100%; text-align: left; background: none; border: none; padding: 11px 12px; font-size: 0.9rem; font-family: inherit; color: var(--ink); cursor: pointer; border-radius: 8px; transition: background 0.15s; }
+  .profile-btn:hover { background: var(--accent-light, #e8e0d5); }
+  .profile-btn-logout { color: #c06060; }
+  .profile-btn-logout:hover { background: #f5e5e5; }
+  /* ---- Password Modal ---- */
+  .pwd-field { margin-bottom: 12px; }
+  .pwd-field label { display: block; font-size: 0.82rem; color: var(--ink-light); margin-bottom: 4px; }
+  .pwd-field input { width: 100%; border: 1.5px solid var(--border); border-radius: 8px; padding: 10px 12px; font-size: 0.9rem; font-family: inherit; background: var(--paper); color: var(--ink); outline: none; }
+  .pwd-field input:focus { border-color: var(--accent); }
+  /* ---- Dark Theme ---- */
+  :root[data-theme="dark"] .profile-role-tester { background: #2a3a5a; color: #8aacd8; }
+  /* ---- Mobile ---- */
+  @media (max-width: 640px) {
+    .avatar-circle { width: 30px; height: 30px; font-size: 0.78rem; }
+    .header-avatar-img { width: 30px; height: 30px; }
+    .profile-avatar-wrap { width: 68px; height: 68px; }
+    .profile-avatar-circle { width: 68px; height: 68px; font-size: 1.6rem; }
+    .profile-avatar-img { width: 68px; height: 68px; }
+    .profile-btn { min-height: 48px; padding: 14px 12px; font-size: 0.95rem; }
+    #profileSidebar { width: 100vw; }
+    .pwd-field input { font-size: 16px; }
+  }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
 </head>
@@ -1141,10 +1181,9 @@
   <div class="brand">Vocab<span>Note</span></div>
   <div class="right">
     <button class="btn-theme" id="btnTheme" onclick="toggleTheme()" title="夜间模式">🌙</button>
-    <button class="btn-feedback" onclick="openFeedback()">留言板</button>
-    <button class="btn-clear" id="btnInvite" style="display:none;border-color:var(--accent);color:var(--accent);" onclick="openInviteDialog()">邀请码</button>
-    <span class="user-badge" id="userBadge">...</span>
-    <button class="btn-logout" onclick="logout()">退出</button>
+    <button class="btn-avatar" id="btnAvatar" onclick="openProfileSidebar()" title="我的">
+      <span class="avatar-circle" id="headerAvatarCircle"></span>
+    </button>
   </div>
 </div>
 
@@ -1303,10 +1342,30 @@
 <!-- Sidebar Overlay -->
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 
-<!-- Sidebar -->
+<!-- Word Sidebar -->
 <div class="sidebar" id="sidebar">
   <button class="sidebar-close" onclick="closeSidebar()">&times;</button>
   <div class="sidebar-inner" id="sidebarContent"></div>
+</div>
+
+<!-- My Profile Sidebar -->
+<div class="sidebar-overlay" id="profileSidebarOverlay" onclick="closeProfileSidebar()"></div>
+<div class="sidebar" id="profileSidebar">
+  <button class="sidebar-close" onclick="closeProfileSidebar()">&times;</button>
+  <div class="sidebar-inner" id="profileSidebarContent"></div>
+</div>
+
+<!-- Change Password Modal -->
+<div class="modal-overlay" id="pwdModal" onclick="if(event.target===this)closeChangePassword()">
+  <div class="modal-box">
+    <h3>修改密码</h3>
+    <div class="pwd-field"><label>旧密码</label><input type="password" id="pwdOld" placeholder="请输入旧密码"></div>
+    <div class="pwd-field"><label>新密码</label><input type="password" id="pwdNew" placeholder="至少6位"></div>
+    <div class="modal-actions">
+      <button class="btn-clear" onclick="closeChangePassword()">取消</button>
+      <button class="btn-submit" onclick="submitChangePassword()">确认修改</button>
+    </div>
+  </div>
 </div>
 
 <div class="modal-overlay" id="feedbackModal" onclick="if(event.target===this)closeFeedback()">
@@ -1413,17 +1472,17 @@ async function fetchUser() {
     const base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
     const payload = JSON.parse(decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')));
     console.log('JWT payload:', payload);
-    document.getElementById('userBadge').textContent = payload.username || '用户';
     userRole = payload.role || 'user';
+    updateHeaderAvatar(payload.username || '用户', null);
     if (userRole === 'admin') {
       document.getElementById('tabAdminBtn').style.display = '';
     }
     if (userRole === 'tester') {
-      document.getElementById('btnInvite').style.display = '';
+      document.getElementById('tabAdminBtn').style.display = '';
     }
   } catch(e) {
     console.error('fetchUser error:', e);
-    document.getElementById('userBadge').textContent = '用户';
+    updateHeaderAvatar('用户', null);
   }
 }
 
@@ -2168,9 +2227,12 @@ function expandToSearch(word) {
   lookup();
 }
 
-// Esc to close sidebar
+// Esc to close sidebars
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') closeSidebar();
+  if (e.key === 'Escape') {
+    if (document.getElementById('profileSidebar').classList.contains('show')) { closeProfileSidebar(); }
+    else { closeSidebar(); }
+  }
 });
 
 // =============================================
@@ -3584,6 +3646,158 @@ function startConfetti() {
     requestAnimationFrame(draw);
   }
   draw();
+}
+
+// ---- profile sidebar & avatar ----
+var _profileData = null;
+var _avatarPalette = ['#4a90d9','#3cb371','#e07b5a','#8e6fc4','#d4838f','#5b9aa0','#d4a548','#6b8e4e','#c4726c','#5c8db5'];
+
+function getAvatarColor(name) {
+  var h = 0;
+  for (var i = 0; i < name.length; i++) { h = name.charCodeAt(i) + ((h << 5) - h); }
+  return _avatarPalette[Math.abs(h) % _avatarPalette.length];
+}
+
+function getInitial(name) {
+  if (!name) return '?';
+  var c = name.charAt(0);
+  return /[a-zA-Z]/.test(c) ? c.toUpperCase() : c;
+}
+
+function updateHeaderAvatar(username, avatarUrl) {
+  var el = document.getElementById('headerAvatarCircle');
+  if (avatarUrl) {
+    el.innerHTML = '<img class="header-avatar-img" src="' + avatarUrl + '" alt="">';
+    el.style.background = '';
+  } else {
+    el.textContent = getInitial(username);
+    el.style.background = getAvatarColor(username);
+  }
+}
+
+function openProfileSidebar() {
+  fetch(API + '/api/user/me', {
+    headers: { 'Authorization': 'Bearer ' + token }
+  }).then(function(r) { return r.json(); }).then(function(data) {
+    if (data.code === 200) {
+      _profileData = data.data;
+      renderProfileSidebar(data.data);
+    } else {
+      showToast(data.msg || '获取资料失败');
+    }
+  });
+}
+
+function closeProfileSidebar() {
+  document.getElementById('profileSidebar').classList.remove('show');
+  document.getElementById('profileSidebarOverlay').classList.remove('show');
+}
+
+function renderProfileSidebar(profile) {
+  var sidebar = document.getElementById('profileSidebar');
+  var overlay = document.getElementById('profileSidebarOverlay');
+  sidebar.classList.add('show');
+  overlay.classList.add('show');
+
+  var avatarUrl = profile.avatarUrl;
+  var name = profile.username || '用户';
+  var color = getAvatarColor(name);
+  var initial = getInitial(name);
+  var avatarHtml;
+  if (avatarUrl) {
+    avatarHtml = '<img class="profile-avatar-img" src="' + avatarUrl + '" alt="">' +
+      '<div class="profile-avatar-overlay">📷</div>';
+  } else {
+    avatarHtml = '<div class="profile-avatar-circle" style="background:' + color + '">' + initial + '</div>' +
+      '<div class="profile-avatar-overlay">📷</div>';
+  }
+
+  var role = profile.role || 'user';
+  var roleTag = '';
+  if (role === 'admin') roleTag = '<span class="profile-role-tag profile-role-admin">管理员</span>';
+  else if (role === 'tester') roleTag = '<span class="profile-role-tag profile-role-tester">内测人</span>';
+  else roleTag = '<span class="profile-role-tag">用户</span>';
+
+  var testerBtns = '';
+  if (role === 'admin' || role === 'tester') {
+    testerBtns = '<button class="profile-btn" onclick="closeProfileSidebar();openInviteDialog()">🎟️ 我的邀请码</button>';
+  }
+
+  document.getElementById('profileSidebarContent').innerHTML =
+    '<div class="profile-section">' +
+    '<div class="profile-avatar-wrap" onclick="triggerAvatarUpload()">' + avatarHtml + '</div>' +
+    '<div class="profile-name">' + escapeHtml(name) + '</div>' +
+    '<div class="profile-email">' + escapeHtml(profile.email || '') + '</div>' +
+    '<div class="profile-role-row">' + roleTag + '</div>' +
+    '</div>' +
+    '<div class="profile-divider"></div>' +
+    '<button class="profile-btn" onclick="closeProfileSidebar();openFeedback()">💬 留言板</button>' +
+    testerBtns +
+    '<button class="profile-btn" onclick="closeProfileSidebar();openChangePassword()">🔑 修改密码</button>' +
+    '<div class="profile-divider"></div>' +
+    '<button class="profile-btn profile-btn-logout" onclick="logout()">退出登录</button>';
+}
+
+function triggerAvatarUpload() {
+  var input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'image/*';
+  input.onchange = function() { uploadAvatar(input); };
+  input.click();
+}
+
+function uploadAvatar(input) {
+  var file = input.files[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')) { showToast('仅支持图片文件'); return; }
+  if (file.size > 5 * 1024 * 1024) { showToast('图片大小不能超过5MB'); return; }
+  var formData = new FormData();
+  formData.append('file', file);
+  fetch(API + '/api/user/avatar', {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + token },
+    body: formData
+  }).then(function(r) { return r.json(); }).then(function(data) {
+    if (data.code === 200) {
+      var url = data.data.avatarUrl;
+      _profileData.avatarUrl = url;
+      updateHeaderAvatar(_profileData.username, url);
+      renderProfileSidebar(_profileData);
+      showToast('头像已更新');
+    } else {
+      showToast(data.msg || '上传失败');
+    }
+  });
+}
+
+function openChangePassword() {
+  document.getElementById('pwdOld').value = '';
+  document.getElementById('pwdNew').value = '';
+  document.getElementById('pwdModal').style.display = 'flex';
+}
+
+function closeChangePassword() {
+  document.getElementById('pwdModal').style.display = 'none';
+}
+
+function submitChangePassword() {
+  var oldPwd = document.getElementById('pwdOld').value.trim();
+  var newPwd = document.getElementById('pwdNew').value.trim();
+  if (!oldPwd || !newPwd) { showToast('请填写旧密码和新密码'); return; }
+  if (newPwd.length < 6) { showToast('新密码至少6位'); return; }
+  fetch(API + '/api/user/password', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+    body: JSON.stringify({ oldPassword: oldPwd, newPassword: newPwd })
+  }).then(function(r) { return r.json(); }).then(function(data) {
+    if (data.code === 200) {
+      showToast('密码已修改');
+      closeChangePassword();
+      setTimeout(function() { logout(); }, 1500);
+    } else {
+      showToast(data.msg || '修改失败');
+    }
+  });
 }
 
 </script>
