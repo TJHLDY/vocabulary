@@ -29,6 +29,7 @@ mybatis-plus:
 jwt:
   secret: ${JWT_SECRET}
   expiration: 604800000
+  remember-expiration: 31536000000
 
 verify-code:
   expire-minutes: 5

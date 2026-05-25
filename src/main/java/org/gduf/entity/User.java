@@ -41,4 +41,6 @@ public class User implements Serializable {
     private Boolean online;
     @TableField("seen_bulletin_id")
     private Long seenBulletinId;
+    @TableField("last_active_at")
+    private Date lastActiveAt;
 }

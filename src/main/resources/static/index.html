@@ -539,6 +539,26 @@
   .sidebar-overlay.show { display: block; }
   @keyframes fadeOverlay { from { opacity: 0; } to { opacity: 1; } }
 
+  /* ---- Toast ---- */
+  .toast {
+    position: fixed;
+    bottom: max(20px, calc(20px + env(safe-area-inset-bottom)));
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--ink);
+    color: var(--paper);
+    padding: 10px 24px;
+    border-radius: 10px;
+    font-size: 0.88rem;
+    z-index: 999;
+    opacity: 0;
+    transition: all 0.3s ease;
+    pointer-events: none;
+    max-width: 90vw;
+    text-align: center;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
   .sidebar {
     position: fixed;
     top: 0;
@@ -1277,6 +1297,7 @@
 
 <!-- Word Tooltip -->
 <div class="word-tooltip" id="wordTooltip" style="opacity:0;"></div>
+<div class="toast" id="toast"></div>
 
 <!-- Sidebar Overlay -->
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
@@ -1371,8 +1392,19 @@ function switchTab(tab) {
 }
 
 // ---- Auth helpers ----
-function authHeaders() {
-  return { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' };
+async function api(url, options) {
+  options = options || {};
+  var headers = { 'Authorization': 'Bearer ' + token };
+  if (options.body) headers['Content-Type'] = 'application/json';
+  var res = await fetch(url, { ...options, headers: { ...headers, ...(options.headers || {}) } });
+  var data = await res.json();
+  if (data.code === 401) {
+    localStorage.removeItem('token');
+    showToast(data.msg || '请重新登录');
+    setTimeout(function() { location.href = 'login.html'; }, 1200);
+    throw new Error(data.msg || '请重新登录');
+  }
+  return data;
 }
 
 async function fetchUser() {
@@ -1398,6 +1430,37 @@ function logout() {
   localStorage.removeItem('token');
   location.href = 'login.html';
 }
+
+var _toastTimer = null;
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(function() { t.classList.remove('show'); }, 2200);
+}
+
+(function() {
+  var _fetch = window.fetch;
+  window.fetch = function(url, options) {
+    return _fetch.call(window, url, options).then(function(res) {
+      var ct = res.headers.get('content-type') || '';
+      if (ct.indexOf('application/json') === -1) return res;
+      return res.clone().json().then(function(data) {
+        if (data && data.code === 401) {
+          localStorage.removeItem('token');
+          showToast(data.msg || '请重新登录');
+          setTimeout(function() { location.href = 'login.html'; }, 1200);
+          throw new Error(data.msg || '请重新登录');
+        }
+        return res;
+      }).catch(function(e) {
+        if (e.message && e.message.indexOf('请重新登录') >= 0) throw e;
+        return res;
+      });
+    });
+  };
+})();
 
 async function checkBulletin() {
   try {
@@ -1456,12 +1519,10 @@ async function lookup() {
     let searchWord = word;
     // If Chinese, translate to English first
     if (isChinese(word)) {
-      const tRes = await fetch(`${API}/api/translate`, {
+      const tData = await api(`${API}/api/translate`, {
         method: 'POST',
-        headers: authHeaders(),
         body: JSON.stringify({ text: word, from: 'zh', to: 'en' })
       });
-      const tData = await tRes.json();
       if (tData.code === 200 && tData.data && tData.data.translation) {
         searchWord = tData.data.translation;
       } else {
@@ -1612,11 +1673,10 @@ async function renderResult(entries, dbData) {
   );
 
   const exampleTranslatePromises = uniqueExamples.map(ex =>
-    fetch(`${API}/api/translate`, {
+    api(`${API}/api/translate`, {
       method: 'POST',
-      headers: authHeaders(),
       body: JSON.stringify({ text: ex, from: 'en', to: 'zh' })
-    }).then(r => r.ok ? r.json() : null)
+    }).catch(() => null)
   );
 
   const [relResults, exTransResults] = await Promise.all([
@@ -1780,12 +1840,10 @@ async function translateSentence() {
 
   try {
     const isZh = isChinese(text);
-    const res = await fetch(`${API}/api/translate/sentence`, {
+    const data = await api(`${API}/api/translate/sentence`, {
       method: 'POST',
-      headers: authHeaders(),
       body: JSON.stringify({ text, from: isZh ? 'zh' : 'en', to: isZh ? 'en' : 'zh' })
     });
-    const data = await res.json();
 
     if (data.code !== 200 || !data.data) {
       area.innerHTML = '<div class="error-msg">翻译失败，请重试</div>';
@@ -1842,7 +1900,7 @@ async function translateSentence() {
 
 async function loadSentenceHistory() {
   try {
-    const res = await fetch(API + '/api/translate/history', { headers: { 'Authorization': 'Bearer ' + token } });
+    const res = await fetch(API + '/api/translate/history');
     const data = await res.json();
     if (data.code !== 200 || !data.data || data.data.length === 0) {
       document.getElementById('historyArea').style.display = 'none';
@@ -2059,11 +2117,10 @@ async function loadSidebarExampleTranslations(dictData) {
   const [transResults, mResults] = await Promise.all([
     Promise.allSettled(
       uniqueExamples.map(ex =>
-        fetch(`${API}/api/translate`, {
+        api(`${API}/api/translate`, {
           method: 'POST',
-          headers: authHeaders(),
           body: JSON.stringify({ text: ex, from: 'en', to: 'zh' })
-        }).then(r => r.ok ? r.json() : null)
+        }).catch(() => null)
       )
     ),
     Promise.allSettled(
@@ -2247,20 +2304,19 @@ let _adminRefreshTimer = null;
 function publishBulletin() {
   const input = document.getElementById('bulletinInput');
   const content = input.value.trim();
-  if (!content) { alert('公告内容不能为空'); return; }
+  if (!content) { showToast('公告内容不能为空'); return; }
   fetch(API + '/api/admin/bulletin', {
     method: 'POST',
-    headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ content: content })
+        body: JSON.stringify({ content: content })
   }).then(r => r.json()).then(data => {
     if (data.code === 200) {
       input.value = '';
       document.getElementById('bulletinCount').textContent = '0/2000';
-      alert('公告已发布');
+      showToast('公告已发布');
     } else {
-      alert(data.msg || '发布失败');
+      showToast(data.msg || '发布失败');
     }
-  }).catch(e => alert('发布失败'));
+  }).catch(e => showToast('发布失败'));
 }
 
 // bulletin char count
@@ -2276,7 +2332,7 @@ async function loadAdmin() {
 
 async function loadUsers() {
   try {
-    const res = await fetch(API + '/api/admin/users', { headers: { 'Authorization': 'Bearer ' + token } });
+    const res = await fetch(API + '/api/admin/users');
     const data = await res.json();
     if (data.code !== 200) return;
     const users = data.data;
@@ -2343,14 +2399,14 @@ async function deleteUser(id) {
       await loadUsers();
     } else {
       const data = await res.json();
-      alert(data.msg || '删除失败');
+      showToast(data.msg || '删除失败');
     }
-  } catch(e) { alert('删除失败: ' + e.message); }
+  } catch(e) { showToast('删除失败: ' + e.message); }
 }
 
 async function loadCodes() {
   try {
-    const res = await fetch(API + '/api/admin/codes', { headers: { 'Authorization': 'Bearer ' + token } });
+    const res = await fetch(API + '/api/admin/codes');
     const data = await res.json();
     if (data.code !== 200) return;
     const list = data.data || [];
@@ -2377,23 +2433,22 @@ async function setRole(userId, newRole) {
   try {
     var res = await fetch(API + '/api/admin/users/' + userId + '/role', {
       method: 'PUT',
-      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ role: newRole })
+            body: JSON.stringify({ role: newRole })
     });
     var data = await res.json();
     if (data.code === 200) {
       loadUsers();
       loadCodes();
     } else {
-      alert(data.msg || '操作失败');
+      showToast(data.msg || '操作失败');
     }
-  } catch(e) { alert('操作失败'); }
+  } catch(e) { showToast('操作失败'); }
 }
 
 async function addTesterCodes(userId) {
   var input = document.getElementById('codeCount' + userId);
   var count = parseInt(input.value) || 10;
-  if (count < 1 || count > 100) { alert('数量需在1-100之间'); return; }
+  if (count < 1 || count > 100) { showToast('数量需在1-100之间'); return; }
   try {
     var res = await fetch(API + '/api/admin/users/' + userId + '/codes?count=' + count, {
       method: 'POST',
@@ -2402,11 +2457,11 @@ async function addTesterCodes(userId) {
     var data = await res.json();
     if (data.code === 200) {
       loadCodes();
-      alert('已生成 ' + data.data.count + ' 个邀请码');
+      showToast('已生成 ' + data.data.count + ' 个邀请码');
     } else {
-      alert(data.msg || '操作失败');
+      showToast(data.msg || '操作失败');
     }
-  } catch(e) { alert('操作失败'); }
+  } catch(e) { showToast('操作失败'); }
 }
 
 // ---- Invite dialog (tester header button) ----
@@ -2485,14 +2540,13 @@ function submitFeedback() {
   if (!msg) return;
   btn.disabled = true;
   btn.textContent = '...';
-  fetch(API + '/api/admin/feedback', {
+  api(API + '/api/admin/feedback', {
     method: 'POST',
-    headers: authHeaders(),
     body: JSON.stringify({ message: msg })
-  }).then(r => r.json()).then(d => {
-    if (d.code === 200) { ta.value = ''; closeFeedback(); alert('感谢您的反馈！'); }
-    else alert(d.msg || '提交失败');
-  }).catch(() => alert('网络错误')).finally(() => { btn.disabled = false; btn.textContent = '提交'; });
+  }).then(d => {
+    if (d.code === 200) { ta.value = ''; closeFeedback(); showToast('感谢您的反馈！'); }
+    else showToast(d.msg || '提交失败');
+  }).catch(() => showToast('网络错误')).finally(() => { btn.disabled = false; btn.textContent = '提交'; });
 }
 document.getElementById('feedbackMsg').addEventListener('input', function() {
   document.getElementById('feedbackCount').textContent = this.value.length + '/500';
@@ -2509,7 +2563,7 @@ function closeFeedbackList() {
 
 async function loadFeedback() {
   try {
-    const res = await fetch(API + '/api/admin/feedback', { headers: { 'Authorization': 'Bearer ' + token } });
+    const res = await fetch(API + '/api/admin/feedback');
     const data = await res.json();
     if (data.code !== 200) return;
     const list = data.data;
@@ -2687,8 +2741,7 @@ async function setQuizModeInline(mode, btn) {
     try {
       const res = await fetch(`${API}/api/quiz/regenerate`, {
         method: 'POST',
-        headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mode, excludeWordIds: answeredIds })
+                body: JSON.stringify({ mode, excludeWordIds: answeredIds })
       });
       const data = await res.json();
       if (data.code === 200 && data.data) {
@@ -2888,10 +2941,10 @@ async function fetchExpandedData(words) {
   if (exToTranslate.length > 0) {
     const transResults = await Promise.allSettled(
       exToTranslate.map(e =>
-        fetch(`${API}/api/translate`, {
-          method: 'POST', headers: authHeaders(),
+        api(`${API}/api/translate`, {
+          method: 'POST',
           body: JSON.stringify({ text: e.text, from: 'en', to: 'zh' })
-        }).then(r => r.ok ? r.json() : null)
+        }).catch(() => null)
       )
     );
     for (let i = 0; i < exToTranslate.length; i++) {
@@ -3075,8 +3128,8 @@ async function startQuiz() {
   try {
     if (quizMode === 'mixed') {
       const [res1, res2] = await Promise.all([
-        fetch(`${API}/api/quiz/generate?mode=cn2en`, { headers: { 'Authorization': 'Bearer ' + token } }),
-        fetch(`${API}/api/quiz/generate?mode=en2cn`, { headers: { 'Authorization': 'Bearer ' + token } })
+        fetch(`${API}/api/quiz/generate?mode=cn2en`),
+        fetch(`${API}/api/quiz/generate?mode=en2cn`)
       ]);
       const data1 = await res1.json();
       const data2 = await res2.json();
@@ -3092,7 +3145,7 @@ async function startQuiz() {
       quizQuestions = data.data.questions;
     }
     if (!quizQuestions || quizQuestions.length === 0) {
-      alert('词库中没有足够的单词，请先导入六级词库');
+      showToast('词库中没有足够的单词，请先导入六级词库');
       return;
     }
     quizIndex = 0;
@@ -3103,7 +3156,7 @@ async function startQuiz() {
     renderQuizQuestion();
     attachQuizKeyboard();
     attachQuizSwipe();
-  } catch(e) { alert('加载题目失败'); }
+  } catch(e) { showToast('加载题目失败'); }
 }
 
 function exitQuiz() {
@@ -3235,8 +3288,7 @@ async function selectOption(btn, chosen, wordId, mode) {
   try {
     const res = await fetch(`${API}/api/quiz/answer`, {
       method: 'POST',
-      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ wordId: wordId, chosen: chosen, mode: mode })
+            body: JSON.stringify({ wordId: wordId, chosen: chosen, mode: mode })
     });
     const data = await res.json();
     const result = data.data;

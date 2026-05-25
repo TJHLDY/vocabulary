@@ -14,22 +14,36 @@ public class JwtUtils {
 
     private final SecretKey key;
     private final long expiration;
+    private final long rememberExpiration;
 
     public JwtUtils(@Value("${jwt.secret}") String secret,
-                    @Value("${jwt.expiration}") long expiration) {
+                    @Value("${jwt.expiration}") long expiration,
+                    @Value("${jwt.remember-expiration}") long rememberExpiration) {
         this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         this.expiration = expiration;
+        this.rememberExpiration = rememberExpiration;
     }
 
     public String generate(Long userId, String username, String role) {
+        return generate(userId, username, role, false);
+    }
+
+    public String generate(Long userId, String username, String role, boolean remember) {
+        long expMs = remember ? rememberExpiration : expiration;
         return Jwts.builder()
                 .subject(String.valueOf(userId))
                 .claim("username", username)
                 .claim("role", role)
+                .claim("remember", remember)
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + expiration))
+                .expiration(new Date(System.currentTimeMillis() + expMs))
                 .signWith(key)
                 .compact();
+    }
+
+    public boolean isRemember(String token) {
+        Object val = parse(token).get("remember");
+        return Boolean.TRUE.equals(val);
     }
 
     public Claims parse(String token) {

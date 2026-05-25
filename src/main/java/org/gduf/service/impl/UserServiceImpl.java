@@ -112,7 +112,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
-    public String login(String loginId, String password) {
+    public String login(String loginId, String password, boolean remember) {
         QueryWrapper<User> qw = new QueryWrapper<>();
         qw.eq("username", loginId).or().eq("email", loginId);
         User user = baseMapper.selectOne(qw);
@@ -126,7 +126,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             throw new RuntimeException("密码错误");
         }
         return jwtUtils.generate(user.getId(), user.getUsername(),
-                user.getRole() != null ? user.getRole() : "user");
+                user.getRole() != null ? user.getRole() : "user", remember);
     }
 
     @Override

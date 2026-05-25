@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface UserService extends IService<User> {
     User register(String username, String email, String password, String code, String inviteCode);
-    String login(String loginId, String password);
+    String login(String loginId, String password, boolean remember);
     void sendRegisterCode(String email);
     void sendResetCode(String email);
     void resetPassword(String email, String code, String newPassword);

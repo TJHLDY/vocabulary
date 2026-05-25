@@ -17,8 +17,12 @@ public class R {
     }
 
     public static R fail(String msg) {
+        return fail(500, msg);
+    }
+
+    public static R fail(int code, String msg) {
         R r = new R();
-        r.code = 500;
+        r.code = code;
         r.msg = msg;
         r.data = null;
         return r;

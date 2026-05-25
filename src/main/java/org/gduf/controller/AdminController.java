@@ -13,7 +13,7 @@ import org.gduf.mapper.InviteCodeMapper;
 import org.gduf.security.JwtAuthFilter;
 import org.gduf.security.UserContext;
 import org.gduf.service.UserService;
-import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
@@ -34,15 +34,9 @@ public class AdminController {
     @Resource
     private BulletinMapper bulletinMapper;
 
-    private void checkAdmin() {
-        if (!"admin".equals(UserContext.getRole())) {
-            throw new AccessDeniedException("无权限");
-        }
-    }
-
     @GetMapping("/users")
+    @PreAuthorize("hasRole('ADMIN')")
     public R users() {
-        checkAdmin();
         List<User> list = userService.list(new QueryWrapper<User>()
                 .select("id", "username", "email", "enabled", "role", "created_at", "invited_by")
                 .orderByDesc("created_at"));
@@ -91,8 +85,8 @@ public class AdminController {
     }
 
     @PutMapping("/users/{id}/toggle")
+    @PreAuthorize("hasRole('ADMIN')")
     public R toggleUser(@PathVariable Long id) {
-        checkAdmin();
         User user = userService.getById(id);
         if (user == null) return R.fail("用户不存在");
         if ("admin".equals(user.getRole())) return R.fail("不能停用管理员");
@@ -103,15 +97,15 @@ public class AdminController {
     }
 
     @DeleteMapping("/users/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public R deleteUser(@PathVariable Long id) {
-        checkAdmin();
         userService.deleteUser(id);
         return R.ok(null);
     }
 
     @PostMapping("/codes")
+    @PreAuthorize("hasRole('ADMIN')")
     public R generateCodes(@RequestParam(defaultValue = "5") int count) {
-        checkAdmin();
         String chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
         Random rng = new Random();
         List<String> codes = new ArrayList<>();
@@ -130,16 +124,16 @@ public class AdminController {
     }
 
     @GetMapping("/codes")
+    @PreAuthorize("hasRole('ADMIN')")
     public R listCodes() {
-        checkAdmin();
         List<InviteCode> list = inviteCodeMapper.selectList(
                 new QueryWrapper<InviteCode>().isNull("used_by").orderByDesc("created_at"));
         return R.ok(list);
     }
 
     @PutMapping("/users/{id}/role")
+    @PreAuthorize("hasRole('ADMIN')")
     public R updateRole(@PathVariable Long id, @RequestBody Map<String, String> body) {
-        checkAdmin();
         String newRole = body.get("role");
         if (newRole == null || (!"tester".equals(newRole) && !"user".equals(newRole))) {
             return R.fail("角色值无效，仅支持 user 和 tester");
@@ -157,8 +151,8 @@ public class AdminController {
     }
 
     @PostMapping("/users/{id}/codes")
+    @PreAuthorize("hasRole('ADMIN')")
     public R addCodesForTester(@PathVariable Long id, @RequestParam(defaultValue = "10") int count) {
-        checkAdmin();
         if (count < 1 || count > 100) return R.fail("一次生成数量需在1-100之间");
         try {
             List<String> codes = userService.generateCodesForTester(id, count);
@@ -169,11 +163,8 @@ public class AdminController {
     }
 
     @GetMapping("/my-codes")
+    @PreAuthorize("hasAnyRole('ADMIN','TESTER')")
     public R myCodes() {
-        String role = UserContext.getRole();
-        if (!"tester".equals(role) && !"admin".equals(role)) {
-            throw new AccessDeniedException("无权限");
-        }
         Long userId = UserContext.getUserId();
         List<InviteCode> list = inviteCodeMapper.selectList(
                 new QueryWrapper<InviteCode>()
@@ -197,16 +188,16 @@ public class AdminController {
     }
 
     @GetMapping("/feedback")
+    @PreAuthorize("hasRole('ADMIN')")
     public R listFeedback() {
-        checkAdmin();
         List<Feedback> list = feedbackMapper.selectList(
                 new QueryWrapper<Feedback>().orderByDesc("created_at"));
         return R.ok(list);
     }
 
     @PostMapping("/bulletin")
+    @PreAuthorize("hasRole('ADMIN')")
     public R publishBulletin(@RequestBody Map<String, String> body) {
-        checkAdmin();
         String content = body.get("content");
         if (content == null || content.isBlank()) return R.fail("公告内容不能为空");
         if (content.length() > 2000) return R.fail("公告内容不能超过2000字");

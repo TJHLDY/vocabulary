@@ -79,11 +79,12 @@ public class AuthController {
     public R login(@RequestBody Map<String, String> body) {
         String username = body.get("username");
         String password = body.get("password");
+        boolean remember = "true".equals(body.get("remember"));
         if (username == null || username.isBlank() || password == null || password.isBlank()) {
             return R.fail("用户名和密码不能为空");
         }
         try {
-            String token = userService.login(username, password);
+            String token = userService.login(username, password, remember);
             return R.ok(Map.of("token", token));
         } catch (RuntimeException e) {
             return R.fail(e.getMessage());
