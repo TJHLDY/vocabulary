@@ -532,7 +532,7 @@
     position: fixed;
     inset: 0;
     background: rgba(0,0,0,0.2);
-    z-index: 150;
+    z-index: 210;
     display: none;
     animation: fadeOverlay 0.2s ease;
   }
@@ -549,7 +549,7 @@
     height: 100dvh;
     background: var(--paper);
     box-shadow: -4px 0 30px rgba(0,0,0,0.12);
-    z-index: 151;
+    z-index: 211;
     overflow-y: auto;
     transform: translateX(100%);
     transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
@@ -613,6 +613,36 @@
     color: #999;
     margin-top: 16px;
     text-align: center;
+  }
+  .sidebar-inner .meaning-group {
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .sidebar-inner .meaning-group:first-of-type { border-top: 1px solid var(--border); margin-top: 6px; }
+  .sidebar-inner .part-of-speech { margin-bottom: 8px; }
+  .sidebar-inner .def-item { margin-bottom: 10px; }
+  .sidebar-inner .def-text { font-size: 0.9rem; line-height: 1.6; }
+  .sidebar-inner .def-example {
+    font-size: 0.82rem; color: #888; margin-top: 3px;
+    font-style: italic; padding-left: 10px;
+    border-left: 2px solid var(--border);
+  }
+  .sb-word-forms { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .sb-wf-label { font-size: 0.75rem; color: #999; font-weight: 500; }
+  .sidebar-inner .examples-section {
+    padding: 14px 0; border-top: 1px solid var(--border);
+  }
+  .sidebar-inner .section-label {
+    display: block; font-size: 0.76rem; text-transform: uppercase;
+    letter-spacing: 1.5px; color: #999; font-weight: 600; margin-bottom: 10px;
+  }
+  .sidebar-inner .example-item {
+    margin-bottom: 10px; padding-bottom: 10px;
+    border-bottom: 1px dashed var(--border);
+  }
+  .sidebar-inner .example-item:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+  .sidebar-inner .example-item .example-text {
+    font-size: 0.88rem; color: var(--ink); line-height: 1.7; word-spacing: 3px;
   }
 
   /* Loading, error, empty */
@@ -942,30 +972,112 @@
     .tab { min-height: 44px; }
   }
   /* ---- Quiz ---- */
-  .quiz-start { text-align: center; padding: 40px 0; }
-  .quiz-start-btn { display: inline-block; background: var(--accent); color: #fff; border: none; padding: 16px 48px; border-radius: 14px; font-size: 1.15rem; font-family: inherit; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 16px rgba(74,111,165,0.25); }
+  .quiz-top-row { display: flex; gap: 16px; margin-bottom: 20px; align-items: stretch; }
+  .quiz-start { text-align: center; padding: 24px 20px; background: var(--paper); border-radius: var(--radius-sm); box-shadow: var(--shadow-sm); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; min-width: 200px; }
+  .quiz-start-btn { display: inline-block; background: var(--accent); color: #fff; border: none; padding: 14px 36px; border-radius: 14px; font-size: 1.05rem; font-family: inherit; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 16px rgba(74,111,165,0.25); }
   .quiz-start-btn:hover { background: var(--accent-hover); transform: translateY(-2px); box-shadow: 0 6px 24px rgba(74,111,165,0.35); }
-  .quiz-mode-switch { display: inline-flex; margin-bottom: 20px; background: var(--gold-light); border-radius: 10px; padding: 3px; }
-  .quiz-mode-switch button { padding: 8px 20px; font-size: 0.88rem; font-family: inherit; border: none; border-radius: 8px; cursor: pointer; background: none; color: var(--warm); transition: all 0.2s; }
+  .quiz-mode-switch { display: inline-flex; background: var(--gold-light); border-radius: 10px; padding: 3px; }
+  .quiz-mode-switch button { padding: 8px 16px; font-size: 0.82rem; font-family: inherit; border: none; border-radius: 8px; cursor: pointer; background: none; color: var(--warm); transition: all 0.2s; white-space: nowrap; }
   .quiz-mode-switch button.active { background: var(--paper); color: var(--accent); box-shadow: 0 2px 8px rgba(0,0,0,0.08); font-weight: 600; }
-  .quiz-chart-wrap { background: var(--paper); border-radius: var(--radius-sm); padding: 20px; margin-bottom: 24px; box-shadow: var(--shadow-sm); }
-  .quiz-chart-wrap h3 { font-size: 0.9rem; color: var(--ink-light); margin-bottom: 12px; font-weight: 500; }
-  .quiz-chart { width: 100%; height: 200px; }
+  .quiz-chart-wrap { flex: 1; background: var(--paper); border-radius: var(--radius-sm); padding: 16px 20px; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; min-width: 0; }
+  .quiz-chart-wrap h3 { font-size: 0.85rem; color: var(--ink-light); margin-bottom: 4px; font-weight: 500; }
+  .quiz-chart { width: 100%; height: 145px; }
   .quiz-records { background: var(--paper); border-radius: var(--radius-sm); box-shadow: var(--shadow-sm); overflow: hidden; }
   .quiz-records-tabs { display: flex; border-bottom: 1px solid var(--border); }
   .quiz-records-tabs button { flex: 1; padding: 12px 0; font-size: 0.88rem; font-family: inherit; background: none; border: none; cursor: pointer; color: #999; font-weight: 500; transition: all 0.15s; }
   .quiz-records-tabs button.active { color: var(--accent); border-bottom: 2px solid var(--accent); }
   .quiz-records-tabs button:hover:not(.active) { color: #666; }
   .quiz-records-tabs button .count { font-size: 0.78rem; color: #bbb; margin-left: 2px; }
-  .quiz-record-list { max-height: 400px; overflow-y: auto; }
-  .quiz-record-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid #f5f3ef; font-size: 0.9rem; }
+  .quiz-record-list { overflow-y: auto; }
+  .quiz-record-item { display: flex; flex-direction: column; padding: 14px 16px; border-bottom: 1px solid #f5f3ef; border-left: 3px solid transparent; cursor: pointer; transition: background 0.2s, border-color 0.2s, transform 0.2s; gap: 6px; }
+  .quiz-record-item:hover { background: var(--accent-light); }
   .quiz-record-item:last-child { border-bottom: none; }
-  .quiz-record-item.mastered { color: #5b9a68; }
-  .quiz-record-item.mastered .qr-tag { color: #5b9a68; font-size: 0.75rem; margin-left: 6px; }
-  .qr-word { font-weight: 600; min-width: 110px; }
-  .qr-meaning { color: #888; font-size: 0.82rem; flex: 1; margin-left: 8px; }
-  .qr-badge { font-size: 0.72rem; color: #999; background: var(--border); padding: 2px 8px; border-radius: 10px; }
+  .quiz-record-item.mastered { border-left-color: #5b9a68; }
+  .qr-row1 { display: flex; align-items: center; gap: 10px; }
+  .qr-word { font-weight: 700; font-size: 1.02rem; color: var(--ink); min-width: 100px; }
+  .qr-meaning { color: #888; font-size: 0.82rem; line-height: 1.4; }
+  .qr-dict-en { display: none; font-size: 0.84rem; color: var(--ink-light); line-height: 1.7; }
+  .qr-cn-meanings { display: flex; flex-direction: column; gap: 4px; }
+  .qr-cn-line { font-size: 0.84rem; color: var(--ink); }
+  .qr-cn-pos { display: inline-block; font-weight: 600; color: var(--accent); font-size: 0.78rem; min-width: 2.2em; }
+  .qr-progress { display: flex; gap: 3px; margin-left: auto; flex-shrink: 0; }
+  .qr-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); transition: background 0.3s; }
+  .qr-dot.filled-0 { background: #e07068; }
+  .qr-dot.filled-1 { background: #e67e22; }
+  .qr-dot.filled-2 { background: #4a8fc0; }
+  .qr-tag { color: #5b9a68; font-size: 0.75rem; margin-left: auto; flex-shrink: 0; }
+  .quiz-record-item.p0 { border-left-color: #e07068; }
+  .quiz-record-item.p1 { border-left-color: #e67e22; }
+  .quiz-record-item.p2 { border-left-color: #4a8fc0; }
   .quiz-empty { color: #ccc; text-align: center; padding: 32px 0; font-size: 0.85rem; }
+  /* ---- Quiz records expand ---- */
+  .btn-quiz-expand {
+    display: inline-block; background: none; border: none; color: #bbb;
+    cursor: pointer; font-size: 0.85rem; padding: 0 0 0 4px; line-height: 1;
+    vertical-align: middle; transition: color 0.2s; margin-left: 2px;
+  }
+  .btn-quiz-expand:hover { color: var(--accent); }
+  .quiz-expand-backdrop {
+    position: fixed; inset: 0; z-index: 199; background: rgba(0,0,0,0.25);
+    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    opacity: 0; pointer-events: none; transition: opacity 0.35s ease;
+  }
+  .quiz-expand-backdrop.show { opacity: 1; pointer-events: auto; }
+  .quiz-records-expanded-header {
+    display: none; align-items: center; justify-content: space-between;
+    padding: 18px 24px; background: var(--paper); border-bottom: 1px solid var(--border);
+    flex-shrink: 0; opacity: 0; transition: opacity 0.25s 0.12s ease;
+  }
+  .btn-quiz-collapse {
+    background: none; border: 1px solid var(--warm-border); color: var(--warm);
+    padding: 8px 18px; border-radius: 20px; cursor: pointer; font-size: 0.85rem;
+    font-family: inherit; transition: all 0.2s;
+  }
+  .btn-quiz-collapse:hover { border-color: var(--error); color: var(--error); }
+  .quiz-records {
+    transition: transform 0.4s cubic-bezier(0.22, 0.61, 0.36, 1),
+                opacity 0.35s ease;
+    transform-origin: center top;
+  }
+  .quiz-records.expanded {
+    position: fixed; top: 5%; left: 5%; width: 90vw; height: 90vh; z-index: 200;
+    border-radius: 18px; box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+    background: var(--paper); display: flex; flex-direction: column; overflow: hidden;
+    animation: quizExpandIn 0.4s cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+  @keyframes quizExpandIn {
+    from { transform: scale(0.92); opacity: 0; }
+    to   { transform: scale(1); opacity: 1; }
+  }
+  .quiz-records.expanded .quiz-records-expanded-header { display: flex; opacity: 1; }
+  .quiz-records.expanded .quiz-records-tabs { display: none; }
+  .quiz-records.expanded .quiz-record-list { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 8px 0; }
+  .quiz-records.expanded .quiz-record-item { padding: 22px 28px; margin: 10px 20px; border-radius: 14px; border-bottom: none; border-left-width: 4px; background: var(--cream); box-shadow: 0 2px 8px rgba(0,0,0,0.04); transition: transform 0.2s, box-shadow 0.2s; }
+  .quiz-records.expanded .quiz-record-item:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.08); }
+  .quiz-records.expanded .qr-word { font-size: 1.35rem; font-weight: 700; min-width: 130px; color: var(--ink); letter-spacing: 0.3px; }
+  .quiz-records.expanded .qr-meaning { display: none; }
+  .quiz-records.expanded .qr-dict-en { display: block; margin-top: 12px; }
+  .quiz-records.expanded .qr-cn-line { font-size: 0.88rem; }
+  .qr-expanded-meanings { display: flex; flex-direction: column; gap: 10px; }
+  .qr-expanded-meanings .qr-pos-group { display: flex; flex-direction: column; gap: 4px; }
+  .qr-expanded-meanings .part-of-speech { display: inline-block; font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--gold); background: var(--gold-light); padding: 2px 9px; border-radius: 4px; margin-bottom: 4px; width: fit-content; }
+  .qr-expanded-meanings .qr-def-list { display: flex; flex-direction: column; gap: 2px; padding-left: 4px; }
+  .qr-expanded-meanings .qr-def-text { font-size: 0.9rem; color: var(--ink); line-height: 1.6; }
+  .qr-examples { margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--border); }
+  .qr-examples .section-label { display: block; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 1.5px; color: #999; font-weight: 600; margin-bottom: 10px; }
+  .qr-examples .qr-ex-item { margin-bottom: 10px; padding-left: 10px; border-left: 3px solid var(--accent); }
+  .qr-examples .qr-ex-item:last-child { margin-bottom: 0; }
+  .qr-examples .qr-ex-text { font-size: 0.88rem; color: var(--ink); line-height: 1.7; font-style: italic; }
+  .qr-examples .qr-ex-trans { font-size: 0.82rem; color: #888; margin-top: 3px; }
+  /* dark mode quiz */
+  :root[data-theme="dark"] .qr-dot.filled-0 { background: #ef5350; }
+  :root[data-theme="dark"] .qr-dot.filled-1 { background: #f0a060; }
+  :root[data-theme="dark"] .qr-dot.filled-2 { background: #5ba0d0; }
+  :root[data-theme="dark"] .quiz-record-item.p0 { border-left-color: #ef5350; }
+  :root[data-theme="dark"] .quiz-record-item.p1 { border-left-color: #f0a060; }
+  :root[data-theme="dark"] .quiz-record-item.p2 { border-left-color: #5ba0d0; }
+  :root[data-theme="dark"] .quiz-record-item.mastered { border-left-color: #66bb6a; }
+  :root[data-theme="dark"] .quiz-expand-backdrop { background: rgba(0,0,0,0.5); }
   /* immersive quiz */
   .quiz-immersive { display: none; position: fixed; inset: 0; background: var(--cream); z-index: 999; flex-direction: column; align-items: center; justify-content: center; }
   .quiz-immersive.active { display: flex; }
@@ -1009,13 +1121,27 @@
   .btn-result-continue { background: var(--accent); border: none; color: #fff; }
   .btn-result-continue:hover { background: var(--accent-hover); }
   @media (max-width: 640px) {
+    .quiz-top-row { flex-direction: column; }
+    .quiz-start { min-width: unset; padding: 18px 16px; gap: 10px; }
+    .quiz-chart-wrap { padding: 14px 12px; }
+    .quiz-chart { height: 130px; }
     .quiz-card { padding: 32px 20px 28px; }
     .quiz-question-line { font-size: 1.35rem; margin-bottom: 24px; }
     .quiz-option { padding: 14px 16px; font-size: 0.88rem; }
     .quiz-option .opt-meaning { font-size: 0.78rem; }
     .quiz-start-btn { padding: 14px 36px; font-size: 1rem; }
     .quiz-topbar { flex-wrap: wrap; gap: 8px; padding: 12px 16px; }
+    .btn-quiz-expand { min-height: 36px; min-width: 36px; font-size: 1rem; padding: 4px 10px; }
+    .btn-quiz-collapse { min-height: 44px; padding: 10px 20px; font-size: 0.9rem; }
+    .quiz-records.expanded { top: 2%; left: 2%; width: 96vw; height: 96vh; border-radius: 14px; }
+    .quiz-records.expanded .quiz-record-item { padding: 18px 16px; }
+    .quiz-records.expanded .qr-word { font-size: 1.05rem; min-width: 100px; }
+    .quiz-records.expanded .qr-meaning { font-size: 0.85rem; }
+    .quiz-records-expanded-header { padding: 14px 16px; }
+    .qr-word { font-size: 0.95rem; }
+    .quiz-record-item { padding: 12px 12px; }
   }
+  /* ---- Bulletin ---- */
   /* ---- Bulletin ---- */
   .bulletin-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 9999; display: flex; align-items: center; justify-content: center; animation: fadeIn 0.25s; }
   .bulletin-dialog { background: var(--paper); border-radius: 16px; padding: 32px 28px 24px; max-width: 420px; width: 90%; box-shadow: 0 16px 48px rgba(0,0,0,0.18); position: relative; animation: slideUp 0.3s; }
@@ -1078,26 +1204,33 @@
   <div class="tab-content" id="tab-quiz">
     <!-- 默认视图: 开始按钮 + 图表 + 学习记录 -->
     <div id="quizDefault">
-      <div class="quiz-start">
-        <div class="quiz-mode-switch" id="quizModeSwitch">
-          <button class="active" data-mode="cn2en" onclick="setQuizMode('cn2en', this)">🇨🇳→🇬🇧 中选英</button>
-          <button data-mode="en2cn" onclick="setQuizMode('en2cn', this)">🇬🇧→🇨🇳 英选中</button>
-          <button data-mode="mixed" onclick="setQuizMode('mixed', this)">🔀 混合模式</button>
+      <div class="quiz-top-row">
+        <div class="quiz-start">
+          <div class="quiz-mode-switch" id="quizModeSwitch">
+            <button class="active" data-mode="cn2en" onclick="setQuizMode('cn2en', this)">🇨🇳→🇬🇧 中选英</button>
+            <button data-mode="en2cn" onclick="setQuizMode('en2cn', this)">🇬🇧→🇨🇳 英选中</button>
+            <button data-mode="mixed" onclick="setQuizMode('mixed', this)">🔀 混合</button>
+          </div>
+          <button class="quiz-start-btn" onclick="startQuiz()">📝 开始刷题</button>
         </div>
-        <button class="quiz-start-btn" onclick="startQuiz()">📝 开始刷题</button>
-      </div>
-      <div class="quiz-chart-wrap">
-        <h3>本周概览</h3>
-        <div class="quiz-chart" id="quizChart"></div>
+        <div class="quiz-chart-wrap">
+          <h3>本周概览</h3>
+          <div class="quiz-chart" id="quizChart"></div>
+        </div>
       </div>
       <div class="quiz-records" id="quizRecords">
+        <div class="quiz-records-expanded-header" id="quizExpandedHeader">
+          <span style="font-weight:600;font-size:1.05rem;">📝 错题本</span>
+          <button class="btn-quiz-collapse" onclick="toggleQuizExpand()">✕ 收起</button>
+        </div>
         <div class="quiz-records-tabs">
-          <button id="qtabWrong" class="active" onclick="switchQuizTab('wrong')">错题 <span class="count" id="wrongCount"></span></button>
+          <button id="qtabWrong" class="active" onclick="switchQuizTab('wrong')">错题 <span class="count" id="wrongCount"></span><span class="btn-quiz-expand" onclick="event.stopPropagation();toggleQuizExpand()" title="展开错题本">⛶</span></button>
           <button id="qtabMastered" onclick="switchQuizTab('mastered')">已掌握 <span class="count" id="masteredCount"></span></button>
         </div>
         <div class="quiz-hint" id="quizHint" style="display:none;padding:8px 16px;font-size:0.78rem;color:#999;border-bottom:1px solid #f5f3ef;">提示：错题连续答对 3 次即可移入已掌握</div>
         <div class="quiz-record-list" id="quizRecordList"></div>
       </div>
+      <div class="quiz-expand-backdrop" id="quizExpandBackdrop" onclick="toggleQuizExpand()"></div>
     </div>
     <!-- 沉浸式答题 -->
     <div class="quiz-immersive" id="quizImmersive">
@@ -1880,19 +2013,15 @@ async function openSidebar(word) {
   content.innerHTML = '<div class="loading-spin"><div class="spinner"></div></div>';
 
   try {
-    // Save to DB (counts as query), fetch dictionary and relations
-    const [saveRes, dictRes, relRes] = await Promise.allSettled([
+    const [saveRes, dictRes] = await Promise.allSettled([
       fetch(`${API}/api/words?word=${encodeURIComponent(word)}`, {
         method: 'POST',
         headers: { 'Authorization': 'Bearer ' + token }
       }),
-      fetch(`${DICT}/${encodeURIComponent(word)}`),
-      fetch(`${API}/api/words/relations?word=${encodeURIComponent(word)}`, {
-        headers: { 'Authorization': 'Bearer ' + token }
-      })
+      fetch(`${DICT}/${encodeURIComponent(word)}`)
     ]);
 
-    let dbData = null, dictData = null, relations = [];
+    let dbData = null, dictData = null;
 
     if (saveRes.status === 'fulfilled' && saveRes.value.ok) {
       const json = await saveRes.value.json();
@@ -1901,18 +2030,14 @@ async function openSidebar(word) {
     if (dictRes.status === 'fulfilled' && dictRes.value.ok) {
       dictData = await dictRes.value.json();
     }
-    if (relRes.status === 'fulfilled' && relRes.value.ok) {
-      const relJson = await relRes.value.json();
-      if (relJson.code === 200 && relJson.data) relations = relJson.data;
-    }
 
-    renderSidebar(word, dictData, dbData, relations);
+    renderSidebar(word, dictData, dbData);
   } catch(e) {
     content.innerHTML = '<div class="error-msg">加载失败</div>';
   }
 }
 
-function renderSidebar(word, dictData, dbData, relations) {
+function renderSidebar(word, dictData, dbData) {
   const content = document.getElementById('sidebarContent');
   const entry = dictData && dictData.length > 0 ? dictData[0] : null;
   const phonetic = entry ? (entry.phonetic || (entry.phonetics && entry.phonetics[0] && entry.phonetics[0].text) || '') : '';
@@ -1920,32 +2045,91 @@ function renderSidebar(word, dictData, dbData, relations) {
   let html = `<div class="word-title">${escapeHtml(word)} <button class="sidebar-expand" onclick="expandToSearch('${escapeHtml(word)}')" title="在查词页打开">↗</button></div>`;
   if (phonetic) html += `<div class="phonetic">/${phonetic}/</div>`;
 
-  // Quick meaning
   if (dbData && dbData.fullChinese) {
-    html += '<div class="quick-meaning">';
-    html += escapeHtml(dbData.fullChinese);
-    html += '</div>';
+    html += '<div class="quick-meaning">' + escapeHtml(dbData.fullChinese) + '</div>';
   }
 
-  // Related words
-  if (relations && relations.length > 0) {
-    html += '<div class="sidebar-related"><span style="font-size:0.8rem;color:#999;">关联词:</span>';
-    for (const rel of relations) {
-      html += `<span class="rel-tag" onclick="lookupWord('${escapeHtml(rel.relatedWord)}')">${escapeHtml(rel.relatedWord)}</span>`;
+  if (dictData && dictData.length > 0) {
+    for (const e of dictData) {
+      for (const meaning of e.meanings || []) {
+        html += '<div class="meaning-group">';
+        html += '<span class="part-of-speech">' + escapeHtml(meaning.partOfSpeech || '') + '</span>';
+        const defs = (meaning.definitions || []).slice(0, 3);
+        for (const def of defs) {
+          html += '<div class="def-item">';
+          html += '<div class="def-text">' + escapeHtml(def.definition) + '</div>';
+          if (def.example) {
+            html += '<div class="def-example">' + escapeHtml(def.example) + '</div>';
+          }
+          html += '</div>';
+        }
+        html += '</div>';
+      }
     }
-    html += '</div>';
+
+    const allExamples = [];
+    for (const e of dictData) {
+      for (const meaning of e.meanings || []) {
+        for (const def of meaning.definitions || []) {
+          if (def.example) allExamples.push(def.example);
+        }
+      }
+    }
+    const uniqueExamples = [...new Set(allExamples)].slice(0, 5);
+    if (uniqueExamples.length > 0) {
+      html += '<div class="examples-section">';
+      html += '<span class="section-label">例句</span>';
+      for (const ex of uniqueExamples) {
+        html += '<div class="example-item"><div class="example-text">' + escapeHtml(ex) + '</div><div class="example-translation" id="sb-ex-' + btoa(encodeURIComponent(ex)).slice(0,12) + '"></div></div>';
+      }
+      html += '</div>';
+    }
   }
 
-  if (!dbData || !dbData.fullChinese) {
+  if (!dictData && (!dbData || !dbData.fullChinese)) {
     html += '<div class="error-msg">暂无详细释义</div>';
   }
 
-  // Query count hint
   if (dbData) {
-    html += `<div class="query-count">已存入 · 每次点击都计入查询</div>`;
+    html += '<div class="query-count">已存入 · 每次点击都计入查询</div>';
   }
 
   content.innerHTML = html;
+
+  if (dictData && dictData.length > 0) {
+    loadSidebarExampleTranslations(dictData);
+  }
+}
+
+async function loadSidebarExampleTranslations(dictData) {
+  const allExamples = [];
+  for (const e of dictData) {
+    for (const meaning of e.meanings || []) {
+      for (const def of meaning.definitions || []) {
+        if (def.example) allExamples.push(def.example);
+      }
+    }
+  }
+  const uniqueExamples = [...new Set(allExamples)].slice(0, 5);
+  if (uniqueExamples.length === 0) return;
+
+  const results = await Promise.allSettled(
+    uniqueExamples.map(ex =>
+      fetch(`${API}/api/translate`, {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({ text: ex, from: 'en', to: 'zh' })
+      }).then(r => r.ok ? r.json() : null)
+    )
+  );
+
+  for (let i = 0; i < uniqueExamples.length; i++) {
+    const r = results[i];
+    if (r.status !== 'fulfilled' || !r.value || r.value.code !== 200 || !r.value.data) continue;
+    const id = 'sb-ex-' + btoa(encodeURIComponent(uniqueExamples[i])).slice(0,12);
+    const el = document.getElementById(id);
+    if (el) el.textContent = r.value.data.translation;
+  }
 }
 
 function closeSidebar() {
@@ -2500,6 +2684,7 @@ let quizCorrectCount = 0;
 let quizMode = 'cn2en';
 let quizAdvanceTimer = null;
 let quizTabActive = 'wrong';
+let quizExpanded = false;
 
 function setQuizMode(mode, btn) {
   quizMode = mode;
@@ -2560,6 +2745,14 @@ function loadQuizPage() {
   document.getElementById('confettiCanvas').classList.remove('active');
   detachQuizKeyboard();
   detachQuizSwipe();
+  if (quizExpanded) {
+    quizExpanded = false;
+    document.getElementById('quizRecords').classList.remove('expanded');
+    document.getElementById('quizExpandBackdrop').classList.remove('show');
+    document.body.style.overflow = '';
+    const topRow = document.querySelector('.quiz-top-row');
+    if (topRow) topRow.style.display = '';
+  }
   loadQuizProgress();
   loadQuizChart();
 }
@@ -2581,6 +2774,146 @@ async function loadQuizProgress() {
     document.getElementById('qtabMastered').classList.remove('active');
     renderQuizRecordList(wrong, false);
   } catch(e) {}
+}
+
+function toggleQuizExpand() {
+  quizExpanded = !quizExpanded;
+  const records = document.getElementById('quizRecords');
+  const backdrop = document.getElementById('quizExpandBackdrop');
+  const topRow = document.querySelector('.quiz-top-row');
+  if (quizExpanded) {
+    backdrop.classList.add('show');
+    records.classList.add('expanded');
+    if (topRow) topRow.style.display = 'none';
+    document.body.style.overflow = 'hidden';
+    loadExpandedDicts();
+  } else {
+    backdrop.classList.remove('show');
+    records.classList.remove('expanded');
+    if (topRow) topRow.style.display = '';
+    document.body.style.overflow = '';
+  }
+}
+
+async function loadExpandedDicts() {
+  const items = document.querySelectorAll('#quizRecordList .quiz-record-item:not(.mastered)');
+  const tasks = [];
+  for (const item of items) {
+    const wordEl = item.querySelector('.qr-word');
+    if (!wordEl) continue;
+    const word = wordEl.textContent.trim();
+    if (!word) continue;
+    tasks.push(
+      Promise.allSettled([
+        fetch(`${API}/api/words?word=${encodeURIComponent(word)}`, {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + token }
+        }).then(r => r.ok ? r.json() : null),
+        fetch(`${DICT}/${encodeURIComponent(word)}`).then(r => r.ok ? r.json() : null)
+      ]).then(([backendRes, dictRes]) => ({
+        word, el: item,
+        backendData: backendRes.status === 'fulfilled' ? backendRes.value : null,
+        dictData: dictRes.status === 'fulfilled' ? dictRes.value : null
+      }))
+    );
+  }
+  const results = await Promise.allSettled(tasks);
+
+  const exToTranslate = [];
+  const renderQueue = [];
+
+  for (const r of results) {
+    if (r.status !== 'fulfilled' || !r.value) continue;
+    const { el, backendData, dictData } = r.value;
+    const fullChinese = backendData && backendData.code === 200 && backendData.data
+      ? (backendData.data.fullChinese || backendData.data.chinese) : null;
+
+    const posGroups = {};
+    if (fullChinese) {
+      const lines = fullChinese.split('\n').filter(l => l.trim());
+      for (const line of lines) {
+        const m = line.match(/^([a-z]+\.)\s*(.+)$/i);
+        if (m) {
+          const pos = m[1];
+          const meanings = m[2].split(/[；;]/).map(s => s.trim()).filter(Boolean);
+          if (!posGroups[pos]) posGroups[pos] = [];
+          posGroups[pos].push(...meanings);
+        }
+      }
+      for (const pos in posGroups) {
+        posGroups[pos] = posGroups[pos].slice(0, 3);
+      }
+    }
+
+    const examples = [];
+    if (dictData && Array.isArray(dictData)) {
+      for (const entry of dictData) {
+        for (const meaning of entry.meanings || []) {
+          for (const def of meaning.definitions || []) {
+            if (def.example && !examples.includes(def.example)) examples.push(def.example);
+            if (examples.length >= 3) break;
+          }
+          if (examples.length >= 3) break;
+        }
+        if (examples.length >= 3) break;
+      }
+    }
+
+    for (const ex of examples) {
+      if (!exToTranslate.some(e => e.text === ex)) exToTranslate.push({ text: ex });
+    }
+    renderQueue.push({ el, posGroups, examples });
+  }
+
+  const transMap = {};
+  if (exToTranslate.length > 0) {
+    const transResults = await Promise.allSettled(
+      exToTranslate.map(e =>
+        fetch(`${API}/api/translate`, {
+          method: 'POST',
+          headers: authHeaders(),
+          body: JSON.stringify({ text: e.text, from: 'en', to: 'zh' })
+        }).then(r => r.ok ? r.json() : null)
+      )
+    );
+    for (let i = 0; i < exToTranslate.length; i++) {
+      const t = transResults[i];
+      if (t.status === 'fulfilled' && t.value && t.value.code === 200 && t.value.data) {
+        transMap[exToTranslate[i].text] = t.value.data.translation;
+      }
+    }
+  }
+
+  for (const { el, posGroups, examples } of renderQueue) {
+    let html = '<div class="qr-expanded-meanings">';
+    for (const pos in posGroups) {
+      html += '<div class="qr-pos-group">';
+      html += '<span class="part-of-speech">' + escapeHtml(pos) + '</span>';
+      html += '<div class="qr-def-list">';
+      for (const meaning of posGroups[pos]) {
+        html += '<div class="qr-def-text">' + escapeHtml(meaning) + '</div>';
+      }
+      html += '</div></div>';
+    }
+    html += '</div>';
+
+    if (examples.length > 0) {
+      html += '<div class="qr-examples">';
+      html += '<span class="section-label">例句</span>';
+      for (const ex of examples) {
+        html += '<div class="qr-ex-item">';
+        html += '<div class="qr-ex-text">' + escapeHtml(ex) + '</div>';
+        if (transMap[ex]) {
+          html += '<div class="qr-ex-trans">' + escapeHtml(transMap[ex]) + '</div>';
+        }
+        html += '</div>';
+      }
+      html += '</div>';
+    }
+
+    const dictEn = el.querySelector('.qr-dict-en');
+    if (dictEn) dictEn.innerHTML = html;
+  }
 }
 
 function switchQuizTab(tab) {
@@ -2615,17 +2948,30 @@ function renderQuizRecordList(items, isMastered) {
     return;
   }
   list.innerHTML = items.map(w => {
-    let badgeHtml = '';
     if (isMastered) {
-      badgeHtml = '<span class="qr-tag">已掌握</span>';
-    } else {
-      const cc = w.consecutiveCorrect || 0;
-      badgeHtml = `<span class="qr-badge">已对 ${cc}/3</span>`;
+      return `<div class="quiz-record-item mastered" onclick="openSidebar('${escapeHtml(w.word)}')">
+        <div class="qr-row1">
+          <span class="qr-word">${escapeHtml(w.word)}</span>
+          <span class="qr-tag">已掌握</span>
+        </div>
+        <div class="qr-dict-en"></div>
+        <div class="qr-meaning">${escapeHtml(w.meaning)}</div>
+      </div>`;
     }
-    const cls = isMastered ? 'mastered' : '';
-    return `<div class="quiz-record-item ${cls}" onclick="searchWord('${escapeHtml(w.word)}')" style="cursor:pointer;">
-      <span class="qr-word">${escapeHtml(w.word)}${badgeHtml}</span>
-      <span class="qr-meaning">${escapeHtml(w.meaning)}</span>
+    const cc = w.consecutiveCorrect || 0;
+    const pCls = 'p' + cc;
+    let dotsHtml = '';
+    for (let i = 0; i < 3; i++) {
+      const filled = i < cc;
+      dotsHtml += `<span class="qr-dot${filled ? ' filled-' + cc : ''}"></span>`;
+    }
+    return `<div class="quiz-record-item ${pCls}" onclick="openSidebar('${escapeHtml(w.word)}')">
+      <div class="qr-row1">
+        <span class="qr-word">${escapeHtml(w.word)}</span>
+        <span class="qr-progress">${dotsHtml}</span>
+      </div>
+      <div class="qr-dict-en"></div>
+      <div class="qr-meaning">${escapeHtml(w.meaning)}</div>
     </div>`;
   }).join('');
 }
@@ -2642,34 +2988,62 @@ function loadQuizChart() {
     }
     const stats = data.data;
     const dayNames = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
-    const dates = stats.map(s => {
+    const today = new Date().getDay();
+    const order = [1, 2, 3, 4, 5, 6, 0];
+    const map = {};
+    stats.forEach(s => {
       const parts = s.date.split('-');
-      const d = new Date(+parts[0], parts[1] - 1, +parts[2]);
-      return dayNames[d.getDay()];
+      map[new Date(+parts[0], parts[1] - 1, +parts[2]).getDay()] = s.rate;
     });
-    const rates = stats.map(s => s.rate);
+    const dates = order.map(d => dayNames[d] + (d === today ? '(今)' : ''));
+    const rates = order.map(d => map[d] !== undefined ? map[d] : null);
+    const colors = ['#7eb0d5','#5ba0c8','#4a8fc0','#5b8fb8','#6a9db0','#7eaaa8','#8fb89e'];
 
     if (window._quizChartInstance) window._quizChartInstance.dispose();
     const chart = echarts.init(chartDom);
     window._quizChartInstance = chart;
     chart.setOption({
-      tooltip: { trigger: 'axis', formatter: p => `${p[0].axisValue}<br/>正确率: ${p[0].value}%` },
-      grid: { left: 40, right: 20, top: 10, bottom: 28 },
-      xAxis: { type: 'category', data: dates, axisLine: { lineStyle: { color: '#e8e4df' } }, axisLabel: { color: '#999', fontSize: 11 } },
-      yAxis: { type: 'value', min: 0, max: 100, axisLabel: { color: '#999', fontSize: 11, formatter: '{value}%' }, splitLine: { lineStyle: { color: '#f5f3ef' } } },
+      tooltip: {
+        trigger: 'axis',
+        axisPointer: { type: 'shadow' },
+        formatter: p => {
+          const v = p[0].value;
+          return `${p[0].axisValue}<br/>正确率: ${v != null ? v + '%' : '无数据'}`;
+        }
+      },
+      grid: { left: 2, right: 2, top: 22, bottom: 22 },
+      xAxis: {
+        type: 'category', data: dates,
+        axisLine: { show: false }, axisTick: { show: false },
+        axisLabel: { color: '#999', fontSize: 10 }
+      },
+      yAxis: { show: false, min: 0, max: 100 },
       series: [{
-        type: 'bar', data: rates,
-        itemStyle: {
-          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: '#4a6fa5' }, { offset: 1, color: '#8fadcf' }
-          ]),
-          borderRadius: [6, 6, 0, 0]
+        type: 'bar', data: rates.map((r, i) => ({
+          value: r,
+          itemStyle: {
+            borderRadius: [8, 8, 0, 0],
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+              { offset: 0, color: colors[i] }, { offset: 1, color: colors[i] + '66' }
+            ])
+          }
+        })),
+        barWidth: 18,
+        label: {
+          show: true, position: 'top',
+          color: '#888', fontSize: 10, fontWeight: 600,
+          formatter: p => p.value != null ? p.value + '%' : ''
         },
-        barWidth: 22
+        emphasis: {
+          itemStyle: { shadowBlur: 10, shadowColor: 'rgba(0,0,0,0.15)' }
+        }
       }]
     });
   }).catch(e => {});
 }
+window.addEventListener('resize', () => {
+  if (window._quizChartInstance) window._quizChartInstance.resize();
+});
 
 async function startQuiz() {
   try {
@@ -3118,9 +3492,6 @@ function startConfetti() {
   draw();
 }
 
-window.addEventListener('resize', () => {
-  if (window._quizChartInstance) window._quizChartInstance.resize();
-});
 </script>
 </body>
 </html>
