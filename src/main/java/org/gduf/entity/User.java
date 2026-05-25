@@ -31,6 +31,12 @@ public class User implements Serializable {
     private Boolean enabled;
     @TableField
     private String role;
+    @TableField("invited_by")
+    private Long invitedBy;
+    @TableField(exist = false)
+    private String invitedByUsername;
+    @TableField(exist = false)
+    private Integer inviteCount;
     @TableField(exist = false)
     private Boolean online;
     @TableField("seen_bulletin_id")

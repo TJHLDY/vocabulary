@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Random;
@@ -98,6 +99,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 .setPassword(passwordEncoder.encode(password))
                 .setEnabled(true)
                 .setRole("user");
+        if (ic.getCreatedBy() != null) {
+            user.setInvitedBy(ic.getCreatedBy());
+        }
         baseMapper.insert(user);
 
         ic.setUsedBy(user.getId());
@@ -205,6 +209,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         inviteCodeMapper.update(null,
             new UpdateWrapper<InviteCode>().eq("used_by", userId).set("used_by", null).set("used_at", null));
 
+        // 删除该用户创建的未使用邀请码
+        inviteCodeMapper.delete(
+            new QueryWrapper<InviteCode>().eq("created_by", userId).isNull("used_by"));
+
         baseMapper.deleteById(userId);
     }
 
@@ -221,5 +229,50 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             deleteUser(u.getId());
         }
         return expired.size();
+    }
+
+    @Override
+    @Transactional
+    public void grantTester(Long userId) {
+        User user = baseMapper.selectById(userId);
+        if (user == null) throw new RuntimeException("用户不存在");
+        if ("admin".equals(user.getRole())) throw new RuntimeException("不能修改管理员角色");
+        user.setRole("tester");
+        user.setUpdatedAt(new Date());
+        baseMapper.updateById(user);
+        generateCodesForTester(userId, 10);
+    }
+
+    @Override
+    public void revokeTester(Long userId) {
+        User user = baseMapper.selectById(userId);
+        if (user == null) throw new RuntimeException("用户不存在");
+        if (!"tester".equals(user.getRole())) throw new RuntimeException("该用户不是内测人");
+        user.setRole("user");
+        user.setUpdatedAt(new Date());
+        baseMapper.updateById(user);
+    }
+
+    @Override
+    public List<String> generateCodesForTester(Long testerId, int count) {
+        User tester = baseMapper.selectById(testerId);
+        if (tester == null) throw new RuntimeException("用户不存在");
+        String chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+        Random rng = new Random();
+        List<String> codes = new ArrayList<>();
+        for (int i = 0; i < count; i++) {
+            StringBuilder sb = new StringBuilder();
+            for (int j = 0; j < 6; j++) {
+                sb.append(chars.charAt(rng.nextInt(chars.length())));
+            }
+            codes.add(sb.toString());
+        }
+        for (String c : codes) {
+            InviteCode ic = new InviteCode()
+                    .setCode(c)
+                    .setCreatedBy(testerId);
+            inviteCodeMapper.insert(ic);
+        }
+        return codes;
     }
 }

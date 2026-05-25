@@ -766,6 +766,39 @@
   .feedback-item .fb-meta { font-size: 0.75rem; color: #aaa; margin-top: 6px; }
   .feedback-empty { color: #ccc; text-align: center; padding: 32px 0; font-size: 0.9rem; }
 
+  /* ---- Invite code dialog ---- */
+  .invite-code-chip {
+    background: var(--paper);
+    border: 1px solid var(--border);
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-family: Consolas, Monaco, monospace;
+    font-size: 0.88rem;
+    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+    transition: border-color 0.15s;
+  }
+  .invite-code-chip:hover { border-color: var(--accent); }
+  .invite-code-chip .copy-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--accent);
+    padding: 2px 10px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+  }
+  .invite-code-chip .copy-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .invite-code-empty { color: var(--ink-light); text-align: center; padding: 24px 0; font-size: 0.9rem; opacity: 0.6; }
+  .role-tester { color: #e67e22; font-weight: 600; }
+  .code-count-input { width: 48px; padding: 4px 6px; border: 1px solid var(--border); border-radius: 4px; font-size: 0.75rem; text-align: center; font-family: inherit; background: var(--cream); color: var(--ink); outline: none; }
+  .code-count-input:focus { border-color: var(--accent); }
+
   /* ---- Responsive ---- */
   @media (max-width: 640px) {
     body { font-size: 16px; padding-bottom: env(safe-area-inset-bottom); }
@@ -958,6 +991,7 @@
   <div class="right">
     <button class="btn-theme" id="btnTheme" onclick="toggleTheme()" title="夜间模式">🌙</button>
     <button class="btn-feedback" onclick="openFeedback()">留言板</button>
+    <button class="btn-clear" id="btnInvite" style="display:none;border-color:var(--accent);color:var(--accent);" onclick="openInviteDialog()">邀请码</button>
     <span class="user-badge" id="userBadge">...</span>
     <button class="btn-logout" onclick="logout()">退出</button>
   </div>
@@ -1064,7 +1098,7 @@
       <h3 style="font-size:1rem;margin-bottom:12px;">用户列表 <span id="userCount" style="font-weight:400;font-size:0.85rem;color:#999;"></span></h3>
       <div class="table-wrap">
         <table class="wordbook-table" style="min-width:700px;">
-          <thead><tr><th>用户名</th><th>邮箱</th><th>角色</th><th>在线</th><th>状态</th><th>注册时间</th><th></th></tr></thead>
+          <thead><tr><th>用户名</th><th>邮箱</th><th>角色</th><th>邀请人</th><th>邀请人数</th><th>在线</th><th>状态</th><th>注册时间</th><th></th></tr></thead>
           <tbody id="userTableBody"></tbody>
         </table>
       </div>
@@ -1115,6 +1149,17 @@
       <span class="modal-count" id="feedbackCount">0/500</span>
       <button class="btn-clear" onclick="closeFeedback()">取消</button>
       <button class="btn-submit" onclick="submitFeedback()">提交</button>
+    </div>
+  </div>
+</div>
+
+<!-- Invite Codes Modal -->
+<div class="modal-overlay" id="inviteModal" onclick="if(event.target===this)closeInviteDialog()">
+  <div class="modal-box" style="max-width:420px;">
+    <h3>我的邀请码</h3>
+    <div id="inviteCodeList" style="max-height:360px;overflow-y:auto;"></div>
+    <div class="modal-actions" style="margin-top:12px;">
+      <button class="btn-clear" onclick="closeInviteDialog()">关闭</button>
     </div>
   </div>
 </div>
@@ -1191,7 +1236,9 @@ async function fetchUser() {
     userRole = payload.role || 'user';
     if (userRole === 'admin') {
       document.getElementById('tabAdminBtn').style.display = '';
-      console.log('Admin tab shown');
+    }
+    if (userRole === 'tester') {
+      document.getElementById('btnInvite').style.display = '';
     }
   } catch(e) {
     console.error('fetchUser error:', e);
@@ -2007,16 +2054,29 @@ async function loadUsers() {
     document.getElementById('userTableBody').innerHTML = users.map(u => {
       let actionBtns = '';
       if (u.role !== 'admin') {
-        actionBtns = '<button class="btn-clear" style="padding:4px 10px;font-size:0.75rem;" onclick="toggleUser(' + u.id + ')">' + (u.enabled ? '停用' : '启用') + '</button>' +
-          ' <button class="btn-clear" style="padding:4px 10px;font-size:0.75rem;border-color:#e0c0c0;color:#c06060;" onclick="deleteUser(' + u.id + ')">删除</button>';
+        actionBtns += '<button class="btn-clear" style="padding:4px 10px;font-size:0.75rem;" onclick="toggleUser(' + u.id + ')">' + (u.enabled ? '停用' : '启用') + '</button> ';
+        if (u.role === 'tester') {
+          actionBtns += '<button class="btn-clear" style="padding:4px 10px;font-size:0.75rem;border-color:#e6a060;color:#e67e22;" onclick="setRole(' + u.id + ',\'user\')">取消内测</button> ';
+          actionBtns += '<input type="number" class="code-count-input" id="codeCount' + u.id + '" value="10" min="1" max="100" title="添加邀请码数量"> ';
+          actionBtns += '<button class="btn-clear" style="padding:4px 10px;font-size:0.75rem;border-color:var(--accent);color:var(--accent);" onclick="addTesterCodes(' + u.id + ')">加码</button> ';
+        } else {
+          actionBtns += '<button class="btn-clear" style="padding:4px 10px;font-size:0.75rem;border-color:#e6a060;color:#e67e22;" onclick="setRole(' + u.id + ',\'tester\')">设为内测</button> ';
+        }
+        actionBtns += '<button class="btn-clear" style="padding:4px 10px;font-size:0.75rem;border-color:#e0c0c0;color:#c06060;" onclick="deleteUser(' + u.id + ')">删除</button>';
       }
+      let roleDisplay;
+      if (u.role === 'admin') roleDisplay = '管理员';
+      else if (u.role === 'tester') roleDisplay = '<span class="role-tester">内测人</span>';
+      else roleDisplay = '用户';
       const onlineDot = u.online
         ? '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#4caf50;margin-right:6px;"></span><span style="color:#2e7d32;">在线</span>'
         : '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#ccc;margin-right:6px;"></span><span style="color:#999;">离线</span>';
       return '<tr>' +
         '<td>' + escapeHtml(u.username || '-') + '</td>' +
         '<td>' + escapeHtml(u.email) + '</td>' +
-        '<td style="font-size:0.82rem;">' + (u.role === 'admin' ? '管理员' : '用户') + '</td>' +
+        '<td style="font-size:0.82rem;">' + roleDisplay + '</td>' +
+        '<td style="font-size:0.82rem;color:#999;">' + (u.invitedByUsername ? escapeHtml(u.invitedByUsername) : '-') + '</td>' +
+        '<td style="font-size:0.82rem;">' + (u.inviteCount || 0) + '</td>' +
         '<td style="font-size:0.82rem;">' + onlineDot + '</td>' +
         '<td style="color:' + (u.enabled ? '#2e7d32' : '#c62828') + ';font-weight:500;">' + (u.enabled ? '正常' : '已停用') + '</td>' +
         '<td style="font-size:0.82rem;color:#999;">' + (u.createdAt ? new Date(u.createdAt).toLocaleDateString('zh-CN') : '-') + '</td>' +
@@ -2072,6 +2132,105 @@ async function genCodes() {
     });
     if (res.ok) loadCodes();
   } catch(e) {}
+}
+
+// ---- Tester role management ----
+async function setRole(userId, newRole) {
+  var label = newRole === 'tester' ? '设为内测人' : '取消内测人身份';
+  if (!confirm('确定' + label + '？')) return;
+  try {
+    var res = await fetch(API + '/api/admin/users/' + userId + '/role', {
+      method: 'PUT',
+      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ role: newRole })
+    });
+    var data = await res.json();
+    if (data.code === 200) {
+      loadUsers();
+      loadCodes();
+    } else {
+      alert(data.msg || '操作失败');
+    }
+  } catch(e) { alert('操作失败'); }
+}
+
+async function addTesterCodes(userId) {
+  var input = document.getElementById('codeCount' + userId);
+  var count = parseInt(input.value) || 10;
+  if (count < 1 || count > 100) { alert('数量需在1-100之间'); return; }
+  try {
+    var res = await fetch(API + '/api/admin/users/' + userId + '/codes?count=' + count, {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    var data = await res.json();
+    if (data.code === 200) {
+      loadCodes();
+      alert('已生成 ' + data.data.count + ' 个邀请码');
+    } else {
+      alert(data.msg || '操作失败');
+    }
+  } catch(e) { alert('操作失败'); }
+}
+
+// ---- Invite dialog (tester header button) ----
+function openInviteDialog() {
+  document.getElementById('inviteModal').classList.add('show');
+  loadMyCodes();
+}
+
+function closeInviteDialog() {
+  document.getElementById('inviteModal').classList.remove('show');
+}
+
+async function loadMyCodes() {
+  var container = document.getElementById('inviteCodeList');
+  container.innerHTML = '<div style="text-align:center;color:#999;padding:20px;">加载中...</div>';
+  try {
+    var res = await fetch(API + '/api/admin/my-codes', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    var data = await res.json();
+    if (data.code !== 200) {
+      container.innerHTML = '<div class="invite-code-empty">加载失败</div>';
+      return;
+    }
+    var list = data.data || [];
+    if (list.length === 0) {
+      container.innerHTML = '<div class="invite-code-empty">暂无可用邀请码，请联系管理员获取</div>';
+      return;
+    }
+    container.innerHTML = list.map(function(c) {
+      return '<div class="invite-code-chip">' +
+        '<span>' + escapeHtml(c.code) + '</span>' +
+        '<button class="copy-btn" onclick="copyInviteCode(\'' + escapeHtml(c.code) + '\', this)">复制</button>' +
+        '</div>';
+    }).join('');
+  } catch(e) {
+    container.innerHTML = '<div class="invite-code-empty">加载失败</div>';
+  }
+}
+
+function copyInviteCode(code, btn) {
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(code).then(function() {
+      btn.textContent = '已复制';
+      setTimeout(function() { btn.textContent = '复制'; }, 1500);
+    }).catch(function() {
+      btn.textContent = '复制失败';
+    });
+  } else {
+    var ta = document.createElement('textarea');
+    ta.value = code;
+    ta.style.position = 'fixed';
+    ta.style.left = '-9999px';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); btn.textContent = '已复制'; }
+    catch(e) { btn.textContent = '复制失败'; }
+    document.body.removeChild(ta);
+    setTimeout(function() { btn.textContent = '复制'; }, 1500);
+  }
 }
 
 function openFeedback() {

@@ -1,0 +1,2 @@
+ALTER TABLE invite_code ADD COLUMN created_by BIGINT NULL COMMENT '创建者用户ID，NULL表示管理员生成';
+ALTER TABLE user ADD COLUMN invited_by BIGINT NULL COMMENT '邀请人用户ID';

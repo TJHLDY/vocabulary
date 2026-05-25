@@ -3,6 +3,8 @@ package org.gduf.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import org.gduf.entity.User;
 
+import java.util.List;
+
 public interface UserService extends IService<User> {
     User register(String username, String email, String password, String code, String inviteCode);
     String login(String loginId, String password);
@@ -12,4 +14,7 @@ public interface UserService extends IService<User> {
     boolean isAvailable(String field, String value);
     void deleteUser(Long userId);
     int deleteDisabledExpired(int days);
+    void grantTester(Long userId);
+    void revokeTester(Long userId);
+    List<String> generateCodesForTester(Long testerId, int count);
 }

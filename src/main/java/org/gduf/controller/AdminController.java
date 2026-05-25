@@ -39,14 +39,49 @@ public class AdminController {
     public R users() {
         checkAdmin();
         List<User> list = userService.list(new QueryWrapper<User>()
-                .select("id", "username", "email", "enabled", "role", "created_at")
+                .select("id", "username", "email", "enabled", "role", "created_at", "invited_by")
                 .orderByDesc("created_at"));
         long now = System.currentTimeMillis();
         long fiveMin = 5 * 60 * 1000;
+
+        Set<Long> inviterIds = new HashSet<>();
+        Map<Long, String> usernameMap = new HashMap<>();
+        Map<Long, Integer> inviteCountMap = new HashMap<>();
+
         for (User u : list) {
             Long last = JwtAuthFilter.LAST_ACTIVE.get(u.getId());
             u.setOnline(last != null && (now - last) < fiveMin);
+            if (u.getInvitedBy() != null) {
+                inviterIds.add(u.getInvitedBy());
+            }
         }
+
+        if (!inviterIds.isEmpty()) {
+            List<User> inviters = userService.list(new QueryWrapper<User>()
+                    .select("id", "username")
+                    .in("id", inviterIds));
+            for (User inv : inviters) {
+                usernameMap.put(inv.getId(), inv.getUsername());
+            }
+        }
+
+        List<Map<String, Object>> countRows = userService.listMaps(
+            new QueryWrapper<User>()
+                .select("invited_by, count(*) as cnt")
+                .isNotNull("invited_by")
+                .groupBy("invited_by"));
+        for (Map<String, Object> row : countRows) {
+            Long inviterId = (Long) row.get("invited_by");
+            inviteCountMap.put(inviterId, ((Number) row.get("cnt")).intValue());
+        }
+
+        for (User u : list) {
+            if (u.getInvitedBy() != null) {
+                u.setInvitedByUsername(usernameMap.getOrDefault(u.getInvitedBy(), "已删除"));
+            }
+            u.setInviteCount(inviteCountMap.getOrDefault(u.getId(), 0));
+        }
+
         return R.ok(list);
     }
 
@@ -94,6 +129,52 @@ public class AdminController {
         checkAdmin();
         List<InviteCode> list = inviteCodeMapper.selectList(
                 new QueryWrapper<InviteCode>().isNull("used_by").orderByDesc("created_at"));
+        return R.ok(list);
+    }
+
+    @PutMapping("/users/{id}/role")
+    public R updateRole(@PathVariable Long id, @RequestBody Map<String, String> body) {
+        checkAdmin();
+        String newRole = body.get("role");
+        if (newRole == null || (!"tester".equals(newRole) && !"user".equals(newRole))) {
+            return R.fail("角色值无效，仅支持 user 和 tester");
+        }
+        User user = userService.getById(id);
+        if (user == null) return R.fail("用户不存在");
+        if ("admin".equals(user.getRole())) return R.fail("不能修改管理员角色");
+
+        if ("tester".equals(newRole) && !"tester".equals(user.getRole())) {
+            userService.grantTester(id);
+        } else if ("user".equals(newRole) && "tester".equals(user.getRole())) {
+            userService.revokeTester(id);
+        }
+        return R.ok(Map.of("role", newRole));
+    }
+
+    @PostMapping("/users/{id}/codes")
+    public R addCodesForTester(@PathVariable Long id, @RequestParam(defaultValue = "10") int count) {
+        checkAdmin();
+        if (count < 1 || count > 100) return R.fail("一次生成数量需在1-100之间");
+        try {
+            List<String> codes = userService.generateCodesForTester(id, count);
+            return R.ok(Map.of("codes", codes, "count", codes.size()));
+        } catch (RuntimeException e) {
+            return R.fail(e.getMessage());
+        }
+    }
+
+    @GetMapping("/my-codes")
+    public R myCodes() {
+        String role = UserContext.getRole();
+        if (!"tester".equals(role) && !"admin".equals(role)) {
+            throw new AccessDeniedException("无权限");
+        }
+        Long userId = UserContext.getUserId();
+        List<InviteCode> list = inviteCodeMapper.selectList(
+                new QueryWrapper<InviteCode>()
+                        .eq("created_by", userId)
+                        .isNull("used_by")
+                        .orderByDesc("created_at"));
         return R.ok(list);
     }
 

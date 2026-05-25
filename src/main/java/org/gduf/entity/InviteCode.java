@@ -25,4 +25,6 @@ public class InviteCode implements Serializable {
     private Date usedAt;
     @TableField("created_at")
     private Date createdAt;
+    @TableField("created_by")
+    private Long createdBy;
 }
