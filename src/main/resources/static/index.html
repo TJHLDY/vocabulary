@@ -1628,7 +1628,7 @@ async function lookup() {
       const dictData = await dictRes.value.json();
       renderResult(dictData, dbData);
     } else if (dictRes.status === 'fulfilled' && dictRes.value.status === 404) {
-      // No dictionary entry, but we might have translation
+      // No dictionary entry, but we might have translation from backend
       if (dbData && dbData.chinese) {
         area.innerHTML = `<div class="result-card">
           <div class="word-head"><div class="word-title">${escapeHtml(searchWord)}</div></div>
@@ -1638,7 +1638,16 @@ async function lookup() {
         area.innerHTML = '<div class="error-msg">未找到该单词的定义</div>';
       }
     } else {
-      area.innerHTML = '<div class="error-msg">词典服务暂不可用</div>';
+      // Dictionary API unreachable, fall back to backend data if available
+      if (dbData && dbData.chinese) {
+        area.innerHTML = `<div class="result-card">
+          <div class="word-head"><div class="word-title">${escapeHtml(searchWord)}</div></div>
+          <div class="quick-meaning">${escapeHtml(dbData.chinese)}</div>
+          <div style="font-size:0.78rem;color:#999;margin-top:8px;">（词典服务暂不可用）</div>
+        </div>`;
+      } else {
+        area.innerHTML = '<div class="error-msg">词典服务暂不可用，请稍后重试</div>';
+      }
     }
 
     loadTopWords();
