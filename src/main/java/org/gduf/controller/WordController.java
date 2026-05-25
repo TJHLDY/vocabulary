@@ -5,8 +5,16 @@ import org.gduf.common.R;
 import org.gduf.entity.Word;
 import org.gduf.security.UserContext;
 import org.gduf.service.WordService;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
+import java.net.URLEncoder;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
@@ -58,6 +66,25 @@ public class WordController {
     public R clear() {
         wordService.clearAll(UserContext.getUserId());
         return R.ok(null);
+    }
+
+    @GetMapping("/dict-proxy/{word}")
+    public ResponseEntity<String> dictProxy(@PathVariable String word) {
+        try {
+            String url = "https://api.dictionaryapi.dev/api/v2/entries/en/"
+                    + URLEncoder.encode(word, StandardCharsets.UTF_8);
+            HttpRequest req = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .GET()
+                    .build();
+            HttpResponse<String> resp = HttpClient.newHttpClient()
+                    .send(req, HttpResponse.BodyHandlers.ofString());
+            return ResponseEntity.status(resp.statusCode())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(resp.body());
+        } catch (Exception e) {
+            return ResponseEntity.status(502).build();
+        }
     }
 
     @PostMapping("/dictation")
