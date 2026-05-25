@@ -5,7 +5,9 @@ import jakarta.annotation.Resource;
 import org.gduf.common.R;
 import org.gduf.entity.Feedback;
 import org.gduf.entity.InviteCode;
+import org.gduf.entity.Bulletin;
 import org.gduf.entity.User;
+import org.gduf.mapper.BulletinMapper;
 import org.gduf.mapper.FeedbackMapper;
 import org.gduf.mapper.InviteCodeMapper;
 import org.gduf.security.JwtAuthFilter;
@@ -28,6 +30,9 @@ public class AdminController {
 
     @Resource
     private FeedbackMapper feedbackMapper;
+
+    @Resource
+    private BulletinMapper bulletinMapper;
 
     private void checkAdmin() {
         if (!"admin".equals(UserContext.getRole())) {
@@ -197,5 +202,16 @@ public class AdminController {
         List<Feedback> list = feedbackMapper.selectList(
                 new QueryWrapper<Feedback>().orderByDesc("created_at"));
         return R.ok(list);
+    }
+
+    @PostMapping("/bulletin")
+    public R publishBulletin(@RequestBody Map<String, String> body) {
+        checkAdmin();
+        String content = body.get("content");
+        if (content == null || content.isBlank()) return R.fail("公告内容不能为空");
+        if (content.length() > 2000) return R.fail("公告内容不能超过2000字");
+        Bulletin bulletin = new Bulletin().setContent(content.trim()).setCreatedAt(new Date());
+        bulletinMapper.insert(bulletin);
+        return R.ok(Map.of("id", bulletin.getId(), "msg", "公告已发布"));
     }
 }

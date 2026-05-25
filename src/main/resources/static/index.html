@@ -799,6 +799,52 @@
   .code-count-input { width: 48px; padding: 4px 6px; border: 1px solid var(--border); border-radius: 4px; font-size: 0.75rem; text-align: center; font-family: inherit; background: var(--cream); color: var(--ink); outline: none; }
   .code-count-input:focus { border-color: var(--accent); }
 
+
+	  /* ---- User cards (admin) ---- */
+	  .user-card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 14px; }
+	  .user-card {
+	    background: var(--paper);
+	    border: 1px solid var(--border);
+	    border-radius: var(--radius-sm);
+	    padding: 18px 20px;
+	    transition: box-shadow 0.2s, border-color 0.2s;
+	  }
+	  .user-card:hover { box-shadow: var(--shadow-md); border-color: var(--accent); }
+	  .user-card .uc-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 12px; gap: 8px; }
+	  .user-card .uc-name { font-weight: 600; font-size: 1rem; color: var(--ink); }
+	  .user-card .uc-email { font-size: 0.8rem; color: var(--ink-light); margin-top: 2px; word-break: break-all; }
+	  .user-card .uc-badges { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
+	  .uc-badge {
+	    font-size: 0.72rem; padding: 3px 10px; border-radius: 10px; font-weight: 500;
+	    white-space: nowrap;
+	  }
+	  .uc-badge.online { background: #e8f5e9; color: #2e7d32; }
+	  .uc-badge.offline { background: #f5f5f5; color: #999; }
+	  :root[data-theme="dark"] .uc-badge.offline { background: #2a2a3a; color: #888; }
+	  :root[data-theme="dark"] .uc-badge.online { background: #1a2e1d; color: #66bb6a; }
+	  .uc-badge.active { background: #e8f5e9; color: #2e7d32; }
+	  .uc-badge.disabled { background: #ffebee; color: #c62828; }
+	  :root[data-theme="dark"] .uc-badge.active { background: #1a2e1d; color: #66bb6a; }
+	  :root[data-theme="dark"] .uc-badge.disabled { background: #3d1a1a; color: #ef5350; }
+	  .uc-badge.role-admin { background: var(--accent-light); color: var(--accent); }
+	  .uc-badge.role-tester { background: #fff3e0; color: #e67e22; }
+	  .uc-badge.role-user { background: var(--warm-light); color: var(--warm); }
+	  :root[data-theme="dark"] .uc-badge.role-tester { background: #3d2e1a; }
+	  .user-card .uc-meta {
+	    display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px;
+	    font-size: 0.8rem; color: var(--ink-light); margin-bottom: 14px;
+	  }
+	  .user-card .uc-meta-label { color: #999; }
+	  .user-card .uc-actions {
+	    display: flex; gap: 6px; flex-wrap: wrap; padding-top: 12px;
+	    border-top: 1px solid var(--border);
+	  }
+	  .user-card .uc-actions .btn-clear { font-size: 0.75rem; padding: 4px 10px; }
+	  @media (max-width: 640px) {
+	    .user-card-grid { grid-template-columns: 1fr; gap: 10px; }
+	    .user-card { padding: 14px 16px; }
+	    .user-card .uc-meta { grid-template-columns: 1fr; }
+	  }
   /* ---- Responsive ---- */
   @media (max-width: 640px) {
     body { font-size: 16px; padding-bottom: env(safe-area-inset-bottom); }
@@ -1082,10 +1128,29 @@
         </div>
       </div>
     </div>
+    <!-- 退出确认弹窗 -->
+    <div class="modal-overlay" id="exitQuizModal">
+      <div class="modal-box" style="text-align:center;">
+        <h3>确定要退出刷题吗？</h3>
+        <p style="font-size:0.85rem;color:var(--ink-light);margin:12px 0;">已答题目和错题将自动保存到错题本</p>
+        <div class="modal-actions" style="justify-content:center;">
+          <button class="btn-clear" onclick="closeExitQuizModal()">继续刷题</button>
+          <button class="btn-submit" style="background:#c06060;" onclick="confirmExitQuiz()">确认退出</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- ====== Tab 3: 管理 ====== -->
   <div class="tab-content" id="tab-admin">
+    <div style="margin-bottom:24px;">
+      <h3 style="font-size:1rem;margin-bottom:12px;">发布公告</h3>
+      <textarea id="bulletinInput" placeholder="输入公告内容，发布后所有用户打开页面时会看到弹窗提醒" maxlength="2000" rows="3" style="width:100%;border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;font-size:0.85rem;font-family:inherit;resize:vertical;outline:none;background:var(--paper);color:var(--ink);"></textarea>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;">
+        <span id="bulletinCount" style="font-size:0.75rem;color:#999;">0/2000</span>
+        <button class="btn-submit" onclick="publishBulletin()">发布公告</button>
+      </div>
+    </div>
     <div style="margin-bottom:24px;">
       <h3 style="font-size:1rem;margin-bottom:12px;">邀请码</h3>
       <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;">
@@ -1096,12 +1161,7 @@
     </div>
     <div>
       <h3 style="font-size:1rem;margin-bottom:12px;">用户列表 <span id="userCount" style="font-weight:400;font-size:0.85rem;color:#999;"></span></h3>
-      <div class="table-wrap">
-        <table class="wordbook-table" style="min-width:700px;">
-          <thead><tr><th>用户名</th><th>邮箱</th><th>角色</th><th>邀请人</th><th>邀请人数</th><th>在线</th><th>状态</th><th>注册时间</th><th></th></tr></thead>
-          <tbody id="userTableBody"></tbody>
-        </table>
-      </div>
+      <div class="user-card-grid" id="userCardGrid"></div>
     </div>
     <div style="margin-top:32px;">
       <button class="btn-clear" onclick="openFeedbackList()" style="border-color:var(--accent);color:var(--accent);">查看用户留言</button>
@@ -1209,6 +1269,7 @@ fetchUser();
 loadTopWords();
 loadSentenceHistory();
 checkBulletin();
+setInterval(checkBulletin, 30000);
 
 // ---- Tab Switching ----
 function switchTab(tab) {
@@ -2037,6 +2098,30 @@ function toggleHideChinese() {
 // ---- Admin ----
 let _adminRefreshTimer = null;
 
+function publishBulletin() {
+  const input = document.getElementById('bulletinInput');
+  const content = input.value.trim();
+  if (!content) { alert('公告内容不能为空'); return; }
+  fetch(API + '/api/admin/bulletin', {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ content: content })
+  }).then(r => r.json()).then(data => {
+    if (data.code === 200) {
+      input.value = '';
+      document.getElementById('bulletinCount').textContent = '0/2000';
+      alert('公告已发布');
+    } else {
+      alert(data.msg || '发布失败');
+    }
+  }).catch(e => alert('发布失败'));
+}
+
+// bulletin char count
+document.getElementById('bulletinInput').addEventListener('input', function() {
+  document.getElementById('bulletinCount').textContent = this.value.length + '/2000';
+});
+
 async function loadAdmin() {
   await Promise.all([loadUsers(), loadCodes()]);
   if (_adminRefreshTimer) clearInterval(_adminRefreshTimer);
@@ -2051,7 +2136,7 @@ async function loadUsers() {
     const users = data.data;
     const onlineCount = users.filter(u => u.online).length;
     document.getElementById('userCount').textContent = '（在线 ' + onlineCount + ' / 共 ' + users.length + ' 人）';
-    document.getElementById('userTableBody').innerHTML = users.map(u => {
+    document.getElementById('userCardGrid').innerHTML = users.map(u => {
       let actionBtns = '';
       if (u.role !== 'admin') {
         actionBtns += '<button class="btn-clear" style="padding:4px 10px;font-size:0.75rem;" onclick="toggleUser(' + u.id + ')">' + (u.enabled ? '停用' : '启用') + '</button> ';
@@ -2064,25 +2149,30 @@ async function loadUsers() {
         }
         actionBtns += '<button class="btn-clear" style="padding:4px 10px;font-size:0.75rem;border-color:#e0c0c0;color:#c06060;" onclick="deleteUser(' + u.id + ')">删除</button>';
       }
-      let roleDisplay;
-      if (u.role === 'admin') roleDisplay = '管理员';
-      else if (u.role === 'tester') roleDisplay = '<span class="role-tester">内测人</span>';
-      else roleDisplay = '用户';
-      const onlineDot = u.online
-        ? '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#4caf50;margin-right:6px;"></span><span style="color:#2e7d32;">在线</span>'
-        : '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#ccc;margin-right:6px;"></span><span style="color:#999;">离线</span>';
-      return '<tr>' +
-        '<td>' + escapeHtml(u.username || '-') + '</td>' +
-        '<td>' + escapeHtml(u.email) + '</td>' +
-        '<td style="font-size:0.82rem;">' + roleDisplay + '</td>' +
-        '<td style="font-size:0.82rem;color:#999;">' + (u.invitedByUsername ? escapeHtml(u.invitedByUsername) : '-') + '</td>' +
-        '<td style="font-size:0.82rem;">' + (u.inviteCount || 0) + '</td>' +
-        '<td style="font-size:0.82rem;">' + onlineDot + '</td>' +
-        '<td style="color:' + (u.enabled ? '#2e7d32' : '#c62828') + ';font-weight:500;">' + (u.enabled ? '正常' : '已停用') + '</td>' +
-        '<td style="font-size:0.82rem;color:#999;">' + (u.createdAt ? new Date(u.createdAt).toLocaleDateString('zh-CN') : '-') + '</td>' +
-        '<td>' + actionBtns + '</td>' +
-        '</tr>';
-    }).join('');
+	      let roleBadge;
+	      if (u.role === 'admin') roleBadge = '<span class="uc-badge role-admin">管理员</span>';
+	      else if (u.role === 'tester') roleBadge = '<span class="uc-badge role-tester">内测人</span>';
+	      else roleBadge = '<span class="uc-badge role-user">用户</span>';
+	      const onlineBadge = u.online
+	        ? '<span class="uc-badge online">● 在线</span>'
+	        : '<span class="uc-badge offline">○ 离线</span>';
+	      const statusBadge = u.enabled
+	        ? '<span class="uc-badge active">正常</span>'
+	        : '<span class="uc-badge disabled">已停用</span>';
+	      return '<div class="user-card">' +
+	        '<div class="uc-top">' +
+	          '<div><div class="uc-name">' + escapeHtml(u.username || '-') + '</div><div class="uc-email">' + escapeHtml(u.email) + '</div></div>' +
+	          '<div class="uc-badges">' + onlineBadge + statusBadge + '</div>' +
+	        '</div>' +
+	        '<div class="uc-meta">' +
+	          '<div>角色：' + roleBadge + '</div>' +
+	          '<div><span class="uc-meta-label">邀请人：</span>' + (u.invitedByUsername ? escapeHtml(u.invitedByUsername) : '-') + '</div>' +
+	          '<div><span class="uc-meta-label">邀请人数：</span>' + (u.inviteCount || 0) + '</div>' +
+	          '<div><span class="uc-meta-label">注册时间：</span>' + (u.createdAt ? new Date(u.createdAt).toLocaleDateString('zh-CN') : '-') + '</div>' +
+	        '</div>' +
+	        (actionBtns ? '<div class="uc-actions">' + actionBtns + '</div>' : '') +
+	        '</div>';
+	    }).join('');
   } catch(e) {}
 }
 
@@ -2617,6 +2707,15 @@ async function startQuiz() {
 }
 
 function exitQuiz() {
+  document.getElementById('exitQuizModal').classList.add('show');
+}
+
+function closeExitQuizModal() {
+  document.getElementById('exitQuizModal').classList.remove('show');
+}
+
+function confirmExitQuiz() {
+  document.getElementById('exitQuizModal').classList.remove('show');
   clearTimeout(quizAdvanceTimer);
   detachQuizKeyboard();
   detachQuizSwipe();
@@ -2645,7 +2744,9 @@ function renderQuizQuestion() {
 
   // update prev/next buttons
   document.getElementById('quizPrevBtn').disabled = (quizIndex === 0);
-  document.getElementById('quizNextBtn').disabled = (quizIndex >= quizQuestions.length - 1) || !quizAnswers[quizIndex];
+  const isLastQ = quizIndex >= quizQuestions.length - 1;
+  document.getElementById('quizNextBtn').disabled = isLastQ ? !quizAnswers[quizIndex] : !quizAnswers[quizIndex];
+  document.getElementById('quizNextBtn').textContent = isLastQ ? '完成 ✓' : '下一题 →';
 
   const isEn2Cn = q.mode === 'en2cn';
   let questionHtml, optionsHtml;
@@ -2760,15 +2861,23 @@ async function selectOption(btn, chosen, wordId, mode) {
         if (!correct) showOptionMeaning(b);
       }
     });
+    const isLast = quizIndex >= quizQuestions.length - 1;
     if (correct) {
       btn.classList.add('correct-pick');
       quizAdvanceTimer = setTimeout(() => {
         quizAdvanceTimer = null;
-        goToQuestion(quizIndex + 1);
+        if (isLast) finishQuiz();
+        else goToQuestion(quizIndex + 1);
       }, 1500);
     } else {
       btn.classList.add('wrong-pick');
       showOptionMeaning(btn);
+      if (isLast) {
+        quizAdvanceTimer = setTimeout(() => {
+          quizAdvanceTimer = null;
+          finishQuiz();
+        }, 2000);
+      }
     }
   } catch(e) {}
 }
@@ -2798,7 +2907,9 @@ function prevQuestion() {
 }
 
 function nextQuestion() {
-  if (quizAnswers[quizIndex] && quizIndex < quizQuestions.length - 1) goToQuestion(quizIndex + 1);
+  if (!quizAnswers[quizIndex]) return;
+  if (quizIndex >= quizQuestions.length - 1) { finishQuiz(); return; }
+  goToQuestion(quizIndex + 1);
 }
 
 // ---- keyboard ----
@@ -2868,7 +2979,11 @@ function _onQuizTouchEnd() {
   _swipeState = null;
   card.classList.remove('swiping');
 
-  if (dx < -threshold && quizAnswers[quizIndex] && quizIndex < quizQuestions.length - 1) {
+  if (dx < -threshold && quizAnswers[quizIndex]) {
+    if (quizIndex >= quizQuestions.length - 1) {
+      finishQuiz();
+      return;
+    }
     card.style.transition = 'transform 0.18s ease-in';
     card.style.transform = 'translateX(-130vw)';
     setTimeout(() => goToQuestion(quizIndex + 1), 180);

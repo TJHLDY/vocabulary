@@ -33,3 +33,8 @@ jwt:
 verify-code:
   expire-minutes: 5
   resend-seconds: 60
+
+translate:
+  baidu:
+    app-id: 20260525002619839
+    secret-key: KQQWOFGPf4QxRFoiLlRz

@@ -8,6 +8,7 @@ import org.gduf.entity.WordRelation;
 import org.gduf.mapper.WordMapper;
 import org.gduf.mapper.WordRelationMapper;
 import org.gduf.service.WordService;
+import org.gduf.translate.TranslateChain;
 import org.springframework.stereotype.Service;
 
 import java.net.URI;
@@ -24,11 +25,13 @@ public class WordServiceImpl extends ServiceImpl<WordMapper, Word> implements Wo
     private final WordRelationMapper relationMapper;
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
+    private final TranslateChain translateChain;
 
-    public WordServiceImpl(WordRelationMapper relationMapper) {
+    public WordServiceImpl(WordRelationMapper relationMapper, TranslateChain translateChain) {
         this.relationMapper = relationMapper;
         this.httpClient = HttpClient.newHttpClient();
         this.objectMapper = new ObjectMapper();
+        this.translateChain = translateChain;
     }
 
     @Override
@@ -72,28 +75,7 @@ public class WordServiceImpl extends ServiceImpl<WordMapper, Word> implements Wo
 
     @Override
     public String translateWord(String word, String from, String to) {
-        try {
-            String langpair;
-            if ("zh".equals(from)) {
-                langpair = "zh-CN|en";
-            } else {
-                langpair = "en|zh";
-            }
-            String url = "https://api.mymemory.translated.net/get?q="
-                    + URLEncoder.encode(word, StandardCharsets.UTF_8)
-                    + "&langpair=" + URLEncoder.encode(langpair, StandardCharsets.UTF_8);
-
-            HttpRequest req = HttpRequest.newBuilder()
-                    .uri(URI.create(url))
-                    .GET()
-                    .build();
-            HttpResponse<String> resp = httpClient.send(req, HttpResponse.BodyHandlers.ofString());
-            JsonNode root = objectMapper.readTree(resp.body());
-            String translated = root.path("responseData").path("translatedText").asText("");
-            return translated.isBlank() ? null : translated;
-        } catch (Exception e) {
-            return null;
-        }
+        return translateChain.translate(word, from, to);
     }
 
     @Override
