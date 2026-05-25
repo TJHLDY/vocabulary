@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.gduf.mapper.QuizProgressMapper">
+
+    <insert id="upsert">
+        INSERT INTO quiz_progress(user_id, cet_word_id, consecutive_correct, total_wrong, last_quiz_at)
+        VALUES(#{userId}, #{cetWordId}, #{consecutiveCorrect}, #{totalWrong}, #{lastQuizAt})
+        ON DUPLICATE KEY UPDATE
+            consecutive_correct = VALUES(consecutive_correct),
+            total_wrong = total_wrong + #{totalWrong},
+            last_quiz_at = VALUES(last_quiz_at)
+    </insert>
+
+    <select id="selectByUser" resultType="org.gduf.entity.QuizProgress">
+        SELECT * FROM quiz_progress WHERE user_id = #{userId}
+        <if test="mastered != null">
+            <choose>
+                <when test="mastered">AND consecutive_correct >= 3</when>
+                <otherwise>AND consecutive_correct &lt; 3</otherwise>
+            </choose>
+        </if>
+        ORDER BY consecutive_correct ASC, last_quiz_at DESC
+    </select>
+
+    <select id="selectWrongWords" resultType="org.gduf.entity.QuizProgress">
+        SELECT * FROM quiz_progress
+        WHERE user_id = #{userId} AND consecutive_correct = 0
+        ORDER BY last_quiz_at ASC
+        LIMIT #{limit}
+    </select>
+
+    <select id="selectByUserAndWord" resultType="org.gduf.entity.QuizProgress">
+        SELECT * FROM quiz_progress
+        WHERE user_id = #{userId} AND cet_word_id = #{cetWordId}
+    </select>
+
+    <delete id="deleteAllByUser">
+        DELETE FROM quiz_progress WHERE user_id = #{userId}
+    </delete>
+
+    <select id="allMastered" resultType="boolean">
+        SELECT NOT EXISTS(
+            SELECT 1 FROM cet6_word c
+            LEFT JOIN quiz_progress p ON c.id = p.cet_word_id AND p.user_id = #{userId}
+            WHERE p.id IS NULL OR p.consecutive_correct &lt; 3
+        )
+    </select>
+
+</mapper>

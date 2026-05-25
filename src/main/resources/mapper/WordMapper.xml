@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.gduf.mapper.WordMapper">
+
+    <insert id="insertOrIncrement">
+        INSERT INTO word(user_id, word, chinese, count) VALUES(#{userId}, #{word}, #{chinese}, 1)
+        ON DUPLICATE KEY UPDATE count = count + 1, chinese = VALUES(chinese)
+    </insert>
+
+    <select id="selectByUserId" resultType="org.gduf.entity.Word">
+        SELECT * FROM word WHERE user_id = #{userId}
+        <choose>
+            <when test="sort == 'accuracy'">
+                ORDER BY COALESCE(dict_correct * 1.0 / NULLIF(dict_total, 0), 1) ASC
+            </when>
+            <otherwise>
+                ORDER BY count DESC
+            </otherwise>
+        </choose>
+    </select>
+
+    <update id="recordDictation">
+        UPDATE word SET dict_total = dict_total + 1
+        <if test="correct">, dict_correct = dict_correct + 1</if>
+        WHERE user_id = #{userId} AND word = #{word}
+    </update>
+
+    <delete id="deleteByUserAndWord">
+        DELETE FROM word WHERE user_id = #{userId} AND word = #{word}
+    </delete>
+
+    <delete id="deleteAllByUser">
+        DELETE FROM word WHERE user_id = #{userId}
+    </delete>
+
+</mapper>

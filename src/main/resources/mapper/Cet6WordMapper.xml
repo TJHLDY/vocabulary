@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.gduf.mapper.Cet6WordMapper">
+
+    <select id="selectRandomExcluding" resultType="org.gduf.entity.Cet6Word">
+        SELECT * FROM cet6_word
+        <if test="excludeIds != null and excludeIds.size() > 0">
+            WHERE id NOT IN
+            <foreach collection="excludeIds" item="id" open="(" separator="," close=")">#{id}</foreach>
+        </if>
+        ORDER BY RAND() LIMIT #{limit}
+    </select>
+
+    <select id="selectRandomByPos" resultType="org.gduf.entity.Cet6Word">
+        SELECT * FROM cet6_word
+        WHERE pos = #{pos} AND word != #{excludeWord}
+        ORDER BY RAND() LIMIT #{limit}
+    </select>
+
+    <select id="countAll" resultType="long">
+        SELECT COUNT(*) FROM cet6_word
+    </select>
+
+</mapper>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.gduf.mapper.QuizDailyStatsMapper">
+
+    <insert id="upsert">
+        INSERT INTO quiz_daily_stats(user_id, quiz_date, total_questions, correct_answers)
+        VALUES(#{userId}, CURDATE(), 1, #{correct} = true)
+        ON DUPLICATE KEY UPDATE
+            total_questions = total_questions + 1,
+            correct_answers = correct_answers + (#{correct} = true)
+    </insert>
+
+    <select id="selectWeekly" resultType="org.gduf.entity.QuizDailyStats">
+        SELECT * FROM quiz_daily_stats
+        WHERE user_id = #{userId} AND quiz_date >= DATE_SUB(CURDATE(), INTERVAL 6 DAY)
+        ORDER BY quiz_date ASC
+    </select>
+
+    <delete id="deleteAllByUser">
+        DELETE FROM quiz_daily_stats WHERE user_id = #{userId}
+    </delete>
+
+</mapper>

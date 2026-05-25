@@ -1,0 +1,35 @@
+server:
+  port: 8086
+  servlet:
+    encoding:
+      charset: UTF-8
+      force: true
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/vocabulary?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&characterEncoding=UTF-8
+    username: root
+    password: ${DB_PASSWORD:123456}
+  mail:
+    host: smtp.163.com
+    port: 465
+    username: VocabNote@163.com
+    password: JAjaaT59hPh8wxFY
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.ssl.enable: true
+      mail.smtp.ssl.trust: smtp.163.com
+    default-encoding: UTF-8
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+
+jwt:
+  secret: ${JWT_SECRET:vocabulary-app-secret-key-must-be-at-least-32-bytes-long}
+  expiration: 604800000
+
+verify-code:
+  expire-minutes: 5
+  resend-seconds: 60

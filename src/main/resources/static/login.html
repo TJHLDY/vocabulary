@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VocabNote — 登录</title>
+<style>
+  :root {
+    --ink: #1a1a2e;
+    --ink-light: #3a3a5c;
+    --cream: #faf8f5;
+    --paper: #ffffff;
+    --accent: #4a6fa5;
+    --accent-hover: #3b5a8a;
+    --gold: #c9a96e;
+    --border: #e8e4df;
+    --error: #d4685c;
+    --success: #5c9a78;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+    --shadow-md: 0 4px 24px rgba(0,0,0,0.08);
+    --radius: 16px;
+  }
+  :root[data-theme="dark"] {
+    --ink: #e0dcd0;
+    --ink-light: #b0aca0;
+    --cream: #1a1a2e;
+    --paper: #242435;
+    --accent: #7eb0d5;
+    --accent-hover: #6a9dbc;
+    --gold: #d4c08a;
+    --border: #3e3e54;
+    --error: #e07068;
+    --success: #6aaa78;
+    --shadow-sm: none;
+    --shadow-md: 0 2px 16px rgba(0,0,0,0.3);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--cream);
+    background-image:
+      radial-gradient(ellipse at 20% 50%, rgba(74,111,165,0.04) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 50%, rgba(201,169,110,0.04) 0%, transparent 50%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .container { width: 100%; max-width: 420px; }
+
+  .logo {
+    text-align: center;
+    margin-bottom: 36px;
+  }
+  .logo h1 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -0.5px;
+  }
+  .logo span { color: var(--accent); }
+  .logo p {
+    font-size: 0.9rem;
+    color: var(--ink-light);
+    margin-top: 4px;
+    font-weight: 400;
+  }
+
+  .card {
+    background: var(--paper);
+    border-radius: var(--radius);
+    padding: 40px 36px;
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--border);
+  }
+
+  .field {
+    margin-bottom: 20px;
+    display: none;
+  }
+  .field.visible { display: block; }
+  .field label {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--ink-light);
+    margin-bottom: 6px;
+  }
+  .field input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    font-size: 0.95rem;
+    font-family: inherit;
+    color: var(--ink);
+    background: var(--cream);
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+  }
+  .field input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(74,111,165,0.1);
+    background: var(--paper);
+  }
+  .btn-code {
+    padding: 12px 16px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    font-family: inherit;
+    background: var(--paper);
+    color: var(--accent);
+    border: 1.5px solid var(--accent);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .btn-code:hover { background: var(--accent); color: #fff; }
+  .btn-code:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .btn {
+    width: 100%;
+    padding: 13px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    font-family: inherit;
+    color: #fff;
+    background: var(--accent);
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: background 0.2s, transform 0.1s;
+    letter-spacing: 0.3px;
+  }
+  .btn:hover { background: var(--accent-hover); }
+  .btn:active { transform: scale(0.98); }
+  .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  .msg {
+    text-align: center;
+    font-size: 0.85rem;
+    margin-top: 14px;
+    min-height: 20px;
+    transition: all 0.2s;
+  }
+  .msg.error { color: var(--error); }
+  .msg.success { color: var(--success); }
+
+  .link-row {
+    text-align: center;
+    margin-top: 16px;
+  }
+  .link-row a {
+    color: var(--accent);
+    font-size: 0.85rem;
+    cursor: pointer;
+    text-decoration: none;
+    font-weight: 500;
+  }
+  .link-sep { color: var(--border); margin: 0 8px; font-size: 0.78rem; }
+
+  .btn-theme {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--paper);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    padding: 6px 10px;
+    line-height: 1;
+    transition: transform 0.2s;
+    box-shadow: var(--shadow-sm);
+  }
+  .btn-theme:hover { transform: scale(1.15); }
+</style>
+</head>
+<body>
+
+<button class="btn-theme" id="btnTheme" onclick="toggleTheme()" title="夜间模式">🌙</button>
+
+<div class="container">
+  <div class="logo">
+    <h1>Vocab<span>Note</span></h1>
+    <p>你的智能单词本</p>
+  </div>
+
+  <div class="card">
+    <form id="authForm" onsubmit="handleSubmit(event)">
+      <div class="field visible" id="fEmail">
+        <label id="lblEmail">邮箱/用户名</label>
+        <input type="text" id="email" placeholder="输入邮箱或用户名" autocomplete="email">
+      </div>
+
+      <div id="fCodeRow" style="display:none;">
+        <div style="display:flex;gap:10px;align-items:flex-end;margin-bottom:20px;">
+          <div style="flex:1;">
+            <label style="display:block;font-size:0.82rem;font-weight:500;color:var(--ink-light);margin-bottom:6px;">验证码</label>
+            <input type="text" id="code" placeholder="6位验证码" maxlength="6" autocomplete="off" style="width:100%;padding:12px 16px;border:1.5px solid var(--border);border-radius:10px;font-size:0.95rem;font-family:inherit;color:var(--ink);background:var(--cream);outline:none;">
+          </div>
+          <button type="button" class="btn-code" id="btnSendCode" onclick="sendCode()">发送验证码</button>
+        </div>
+      </div>
+
+      <div class="field" id="fUsername">
+        <label>用户名</label>
+        <input type="text" id="username" placeholder="给自己起个名字" maxlength="20" autocomplete="off">
+      </div>
+
+      <div class="field visible" id="fPassword">
+        <label id="lblPassword">密码</label>
+        <input type="password" id="password" placeholder="至少6位" minlength="6" autocomplete="current-password">
+      </div>
+
+      <div class="field" id="fInvite">
+        <label>邀请码</label>
+        <input type="text" id="inviteCode" placeholder="输入邀请码" maxlength="10" autocomplete="off">
+      </div>
+
+      <button type="submit" class="btn" id="submitBtn">登 录</button>
+      <div class="msg" id="msg"></div>
+
+      <div class="link-row" id="linkLoginLinks">
+        <a onclick="switchMode('register')">立即注册</a>
+        <span class="link-sep">·</span>
+        <a onclick="switchMode('forgot')">忘记密码？</a>
+      </div>
+      <div class="link-row" id="linkBack" style="display:none;">
+        <a onclick="switchMode('login')">← 返回登录</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+const API = '';
+let mode = 'login';
+let codeTimer = null;
+
+// ---- Theme ----
+(function() {
+  const saved = localStorage.getItem('theme');
+  const theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.dataset.theme = theme;
+  updateThemeBtn(theme);
+})();
+
+function toggleTheme() {
+  const cur = document.documentElement.dataset.theme;
+  const next = cur === 'dark' ? 'light' : 'dark';
+  document.documentElement.dataset.theme = next;
+  localStorage.setItem('theme', next);
+  updateThemeBtn(next);
+}
+
+function updateThemeBtn(theme) {
+  const btn = document.getElementById('btnTheme');
+  btn.textContent = theme === 'dark' ? '☀️' : '🌙';
+  btn.title = theme === 'dark' ? '日间模式' : '夜间模式';
+}
+
+function switchMode(m) {
+  mode = m;
+  document.getElementById('authForm').reset();
+  document.getElementById('msg').textContent = '';
+  document.getElementById('msg').className = 'msg';
+  clearInterval(codeTimer);
+  document.getElementById('btnSendCode').disabled = false;
+  document.getElementById('btnSendCode').textContent = '发送验证码';
+  updateFields();
+}
+
+function updateFields() {
+  const isLogin = mode === 'login';
+  const isRegister = mode === 'register';
+  const isForgot = mode === 'forgot';
+
+  document.getElementById('lblEmail').textContent = isLogin ? '邮箱/用户名' : '邮箱';
+  document.getElementById('fEmail').classList.add('visible');
+
+  document.getElementById('fCodeRow').style.display = (isRegister || isForgot) ? '' : 'none';
+
+  document.getElementById('fUsername').classList.toggle('visible', isRegister);
+
+  document.getElementById('fPassword').classList.toggle('visible', isLogin || isRegister);
+  document.getElementById('lblPassword').textContent = isForgot ? '新密码' : '密码';
+
+  document.getElementById('fInvite').classList.toggle('visible', isRegister);
+
+  document.getElementById('linkLoginLinks').style.display = isLogin ? '' : 'none';
+  document.getElementById('linkBack').style.display = (isRegister || isForgot) ? '' : 'none';
+
+  if (isLogin) document.getElementById('submitBtn').textContent = '登 录';
+  else if (isRegister) document.getElementById('submitBtn').textContent = '注 册';
+  else document.getElementById('submitBtn').textContent = '重置密码';
+}
+
+async function sendCode() {
+  const email = document.getElementById('email').value.trim();
+  if (!email) {
+    document.getElementById('msg').textContent = '请先输入邮箱';
+    document.getElementById('msg').className = 'msg error';
+    return;
+  }
+
+  const isForgot = mode === 'forgot';
+  const url = API + (isForgot ? '/api/auth/forgot-password/send-code' : '/api/auth/register/send-code');
+  const btn = document.getElementById('btnSendCode');
+  btn.disabled = true;
+
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+    const data = await res.json();
+    if (data.code === 200) {
+      document.getElementById('msg').textContent = '验证码已发送';
+      document.getElementById('msg').className = 'msg success';
+      let sec = 60;
+      btn.textContent = sec + 's';
+      codeTimer = setInterval(() => {
+        sec--;
+        btn.textContent = sec + 's';
+        if (sec <= 0) {
+          clearInterval(codeTimer);
+          btn.disabled = false;
+          btn.textContent = '发送验证码';
+        }
+      }, 1000);
+    } else {
+      document.getElementById('msg').textContent = data.msg;
+      document.getElementById('msg').className = 'msg error';
+      btn.disabled = false;
+    }
+  } catch(err) {
+    document.getElementById('msg').textContent = '网络错误';
+    document.getElementById('msg').className = 'msg error';
+    btn.disabled = false;
+  }
+}
+
+async function handleSubmit(e) {
+  e.preventDefault();
+  const btn = document.getElementById('submitBtn');
+  const msg = document.getElementById('msg');
+  msg.textContent = '';
+  msg.className = 'msg';
+  btn.disabled = true;
+  btn.textContent = '请稍候...';
+
+  try {
+    const isLogin = mode === 'login';
+    const isRegister = mode === 'register';
+    const isForgot = mode === 'forgot';
+
+    let url, body;
+    if (isForgot) {
+      url = API + '/api/auth/forgot-password/reset';
+      body = {
+        email: document.getElementById('email').value.trim(),
+        code: document.getElementById('code').value.trim(),
+        newPassword: document.getElementById('password').value
+      };
+    } else if (isLogin) {
+      url = API + '/api/auth/login';
+      body = {
+        username: document.getElementById('email').value.trim(),
+        password: document.getElementById('password').value
+      };
+    } else {
+      url = API + '/api/auth/register';
+      body = {
+        email: document.getElementById('email').value.trim(),
+        code: document.getElementById('code').value.trim(),
+        username: document.getElementById('username').value.trim(),
+        password: document.getElementById('password').value,
+        inviteCode: document.getElementById('inviteCode').value.trim()
+      };
+    }
+
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const data = await res.json();
+
+    if (data.code === 200) {
+      if (isLogin) {
+        localStorage.setItem('token', data.data.token);
+        msg.className = 'msg success';
+        msg.textContent = '登录成功，跳转中...';
+        setTimeout(() => location.href = 'index.html', 600);
+      } else if (isForgot) {
+        msg.className = 'msg success';
+        msg.textContent = '密码已重置，请登录';
+        setTimeout(() => switchMode('login'), 1000);
+      } else {
+        msg.className = 'msg success';
+        msg.textContent = '注册成功，请登录';
+        setTimeout(() => switchMode('login'), 800);
+      }
+    } else {
+      msg.className = 'msg error';
+      msg.textContent = data.msg;
+    }
+  } catch(err) {
+    msg.className = 'msg error';
+    msg.textContent = '网络错误，请检查后端是否启动';
+  } finally {
+    btn.disabled = false;
+    if (mode === 'login') btn.textContent = '登 录';
+    else if (mode === 'register') btn.textContent = '注 册';
+    else btn.textContent = '重置密码';
+  }
+}
+</script>
+</body>
+</html>
