@@ -1473,7 +1473,7 @@ async function fetchUser() {
     const payload = JSON.parse(decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')));
     console.log('JWT payload:', payload);
     userRole = payload.role || 'user';
-    updateHeaderAvatar(payload.username || '用户', null);
+    updateHeaderAvatar(payload.username || '我的', null);
     if (userRole === 'admin') {
       document.getElementById('tabAdminBtn').style.display = '';
     }
@@ -1482,7 +1482,7 @@ async function fetchUser() {
     }
   } catch(e) {
     console.error('fetchUser error:', e);
-    updateHeaderAvatar('用户', null);
+    updateHeaderAvatar('我的', null);
   }
 }
 
@@ -3653,6 +3653,7 @@ var _profileData = null;
 var _avatarPalette = ['#4a90d9','#3cb371','#e07b5a','#8e6fc4','#d4838f','#5b9aa0','#d4a548','#6b8e4e','#c4726c','#5c8db5'];
 
 function getAvatarColor(name) {
+  if (!name) return _avatarPalette[0];
   var h = 0;
   for (var i = 0; i < name.length; i++) { h = name.charCodeAt(i) + ((h << 5) - h); }
   return _avatarPalette[Math.abs(h) % _avatarPalette.length];
@@ -3700,7 +3701,7 @@ function renderProfileSidebar(profile) {
   overlay.classList.add('show');
 
   var avatarUrl = profile.avatarUrl;
-  var name = profile.username || '用户';
+  var name = profile.username || '我的';
   var color = getAvatarColor(name);
   var initial = getInitial(name);
   var avatarHtml;
@@ -3716,7 +3717,7 @@ function renderProfileSidebar(profile) {
   var roleTag = '';
   if (role === 'admin') roleTag = '<span class="profile-role-tag profile-role-admin">管理员</span>';
   else if (role === 'tester') roleTag = '<span class="profile-role-tag profile-role-tester">内测人</span>';
-  else roleTag = '<span class="profile-role-tag">用户</span>';
+  else roleTag = '<span class="profile-role-tag">我的</span>';
 
   var testerBtns = '';
   if (role === 'admin' || role === 'tester') {
@@ -3767,6 +3768,8 @@ function uploadAvatar(input) {
     } else {
       showToast(data.msg || '上传失败');
     }
+  }).catch(function(e) {
+    showToast('网络错误，请重试');
   });
 }
 

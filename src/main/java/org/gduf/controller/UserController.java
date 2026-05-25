@@ -2,6 +2,8 @@ package org.gduf.controller;
 
 import com.aliyun.oss.OSS;
 import jakarta.annotation.Resource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.gduf.common.R;
 import org.gduf.security.UserContext;
 import org.gduf.service.UserService;
@@ -16,6 +18,8 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/user")
 public class UserController {
+
+    private static final Logger log = LoggerFactory.getLogger(UserController.class);
 
     @Resource
     private UserService userService;
@@ -55,8 +59,9 @@ public class UserController {
             String url = "https://" + bucket + "." + endpoint + "/" + key;
             String avatarUrl = userService.updateAvatar(UserContext.getUserId(), url);
             return R.ok(Map.of("avatarUrl", avatarUrl));
-        } catch (IOException e) {
-            return R.fail("上传失败");
+        } catch (Exception e) {
+            log.error("头像上传失败", e);
+            return R.fail("上传失败: " + e.getMessage());
         }
     }
 

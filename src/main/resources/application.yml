@@ -11,6 +11,10 @@ spring:
     url: jdbc:mysql://localhost:3306/vocabulary?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&characterEncoding=UTF-8
     username: root
     password: ${DB_PASSWORD}
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 10MB
   mail:
     host: smtp.163.com
     port: 465
