@@ -2754,6 +2754,7 @@ async function setQuizModeInline(mode, btn) {
     try {
       const res = await fetch(`${API}/api/quiz/regenerate`, {
         method: 'POST',
+                headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
                 body: JSON.stringify({ mode, excludeWordIds: answeredIds })
       });
       const data = await res.json();
@@ -3141,8 +3142,8 @@ async function startQuiz() {
   try {
     if (quizMode === 'mixed') {
       const [res1, res2] = await Promise.all([
-        fetch(`${API}/api/quiz/generate?mode=cn2en`),
-        fetch(`${API}/api/quiz/generate?mode=en2cn`)
+        fetch(`${API}/api/quiz/generate?mode=cn2en`, { headers: { 'Authorization': 'Bearer ' + token } }),
+        fetch(`${API}/api/quiz/generate?mode=en2cn`, { headers: { 'Authorization': 'Bearer ' + token } })
       ]);
       const data1 = await res1.json();
       const data2 = await res2.json();
@@ -3301,6 +3302,7 @@ async function selectOption(btn, chosen, wordId, mode) {
   try {
     const res = await fetch(`${API}/api/quiz/answer`, {
       method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
             body: JSON.stringify({ wordId: wordId, chosen: chosen, mode: mode })
     });
     const data = await res.json();
