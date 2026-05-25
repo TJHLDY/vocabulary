@@ -1903,7 +1903,9 @@ async function translateSentence() {
 
 async function loadSentenceHistory() {
   try {
-    const res = await fetch(API + '/api/translate/history');
+    const res = await fetch(API + '/api/translate/history', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
     const data = await res.json();
     if (data.code !== 200 || !data.data || data.data.length === 0) {
       document.getElementById('historyArea').style.display = 'none';
@@ -2310,6 +2312,7 @@ function publishBulletin() {
   if (!content) { showToast('公告内容不能为空'); return; }
   fetch(API + '/api/admin/bulletin', {
     method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
         body: JSON.stringify({ content: content })
   }).then(r => r.json()).then(data => {
     if (data.code === 200) {
@@ -2335,7 +2338,9 @@ async function loadAdmin() {
 
 async function loadUsers() {
   try {
-    const res = await fetch(API + '/api/admin/users');
+    const res = await fetch(API + '/api/admin/users', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
     const data = await res.json();
     if (data.code !== 200) return;
     const users = data.data;
@@ -2409,7 +2414,9 @@ async function deleteUser(id) {
 
 async function loadCodes() {
   try {
-    const res = await fetch(API + '/api/admin/codes');
+    const res = await fetch(API + '/api/admin/codes', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
     const data = await res.json();
     if (data.code !== 200) return;
     const list = data.data || [];
@@ -2436,6 +2443,7 @@ async function setRole(userId, newRole) {
   try {
     var res = await fetch(API + '/api/admin/users/' + userId + '/role', {
       method: 'PUT',
+            headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
             body: JSON.stringify({ role: newRole })
     });
     var data = await res.json();
@@ -2566,7 +2574,9 @@ function closeFeedbackList() {
 
 async function loadFeedback() {
   try {
-    const res = await fetch(API + '/api/admin/feedback');
+    const res = await fetch(API + '/api/admin/feedback', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
     const data = await res.json();
     if (data.code !== 200) return;
     const list = data.data;
