@@ -117,8 +117,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             UsernamePasswordAuthenticationToken auth =
                     new UsernamePasswordAuthenticationToken(userId, null, authorities);
             SecurityContextHolder.getContext().setAuthentication(auth);
-
-            filterChain.doFilter(request, response);
         } catch (Exception e) {
             log.error("JWT auth failed for path={}", request.getRequestURI(), e);
             response.setContentType("application/json;charset=UTF-8");
@@ -127,6 +125,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     ? "{\"code\":401,\"msg\":\"3天未活跃，请重新登录\",\"data\":null}"
                     : "{\"code\":401,\"msg\":\"token无效\",\"data\":null}";
             response.getWriter().write(msg);
+            return;
+        }
+
+        try {
+            filterChain.doFilter(request, response);
         } finally {
             UserContext.clear();
             SecurityContextHolder.clearContext();
