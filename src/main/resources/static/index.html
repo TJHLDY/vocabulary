@@ -1444,6 +1444,8 @@ function showToast(msg) {
   var _fetch = window.fetch;
   window.fetch = function(url, options) {
     return _fetch.call(window, url, options).then(function(res) {
+      var urlStr = typeof url === 'string' ? url : (url && url.url ? url.url : '');
+      if (urlStr.indexOf('://') >= 0) return res;
       var ct = res.headers.get('content-type') || '';
       if (ct.indexOf('application/json') === -1) return res;
       return res.clone().json().then(function(data) {

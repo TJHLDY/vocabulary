@@ -17,6 +17,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.util.Date;
 import java.util.Iterator;
@@ -27,6 +30,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
 
+    private static final Logger log = LoggerFactory.getLogger(JwtAuthFilter.class);
     public static final ConcurrentHashMap<Long, Long> LAST_ACTIVE = new ConcurrentHashMap<>();
     private static final long THREE_DAYS_MS = 3L * 24 * 60 * 60 * 1000;
     private static final long DB_WRITE_INTERVAL_MS = 5L * 60 * 1000;
@@ -80,41 +84,28 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             Claims claims = jwtUtils.parse(token);
             Long userId = Long.valueOf(claims.getSubject());
             String role = claims.get("role", String.class);
+            if (role == null) role = "user";
             boolean remember = Boolean.TRUE.equals(claims.get("remember"));
             long now = System.currentTimeMillis();
 
             if (remember) {
-                Long lastActive = LAST_ACTIVE.get(userId);
-                if (lastActive != null) {
-                    if (now - lastActive > THREE_DAYS_MS) {
-                        User user = userMapper.selectById(userId);
-                        long dbLast = (user != null && user.getLastActiveAt() != null)
-                                ? user.getLastActiveAt().getTime() : 0L;
-                        if (dbLast == 0L || now - dbLast > THREE_DAYS_MS) {
-                            throw new RuntimeException("3天未活跃，请重新登录");
-                        }
-                        LAST_ACTIVE.put(userId, dbLast);
+                try {
+                    checkRememberActivity(userId, now);
+                } catch (RuntimeException e) {
+                    if (e.getMessage() != null && e.getMessage().contains("3天未活跃")) {
+                        throw e;
                     }
-                } else {
-                    User user = userMapper.selectById(userId);
-                    long dbLast = (user != null && user.getLastActiveAt() != null)
-                            ? user.getLastActiveAt().getTime() : 0L;
-                    if (dbLast > 0L && now - dbLast > THREE_DAYS_MS) {
-                        throw new RuntimeException("3天未活跃，请重新登录");
-                    }
-                    LAST_ACTIVE.put(userId, dbLast > 0L ? dbLast : now);
+                    log.warn("Remember-me DB check failed for userId={}", userId, e);
                 }
             }
 
             LAST_ACTIVE.put(userId, now);
 
             if (remember) {
-                Long lastWrite = lastDbWrite.get(userId);
-                if (lastWrite == null || now - lastWrite > DB_WRITE_INTERVAL_MS) {
-                    UpdateWrapper<User> uw = new UpdateWrapper<>();
-                    uw.eq("id", userId).set("last_active_at", new Date(now));
-                    userMapper.update(null, uw);
-                    lastDbWrite.put(userId, now);
+                try {
+                    flushLastActive(userId, now);
+                } catch (Exception e) {
+                    log.warn("Failed to flush last_active_at for userId={}", userId, e);
                 }
             }
 
@@ -129,6 +120,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
             filterChain.doFilter(request, response);
         } catch (Exception e) {
+            log.error("JWT auth failed for path={}", request.getRequestURI(), e);
             response.setContentType("application/json;charset=UTF-8");
             response.setStatus(401);
             String msg = e.getMessage() != null && e.getMessage().contains("3天未活跃")
@@ -138,6 +130,39 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         } finally {
             UserContext.clear();
             SecurityContextHolder.clearContext();
+        }
+    }
+
+    private void checkRememberActivity(Long userId, long now) {
+        Long lastActive = LAST_ACTIVE.get(userId);
+        if (lastActive != null) {
+            if (now - lastActive > THREE_DAYS_MS) {
+                User user = userMapper.selectById(userId);
+                long dbLast = (user != null && user.getLastActiveAt() != null)
+                        ? user.getLastActiveAt().getTime() : 0L;
+                if (dbLast == 0L || now - dbLast > THREE_DAYS_MS) {
+                    throw new RuntimeException("3天未活跃，请重新登录");
+                }
+                LAST_ACTIVE.put(userId, dbLast);
+            }
+        } else {
+            User user = userMapper.selectById(userId);
+            long dbLast = (user != null && user.getLastActiveAt() != null)
+                    ? user.getLastActiveAt().getTime() : 0L;
+            if (dbLast > 0L && now - dbLast > THREE_DAYS_MS) {
+                throw new RuntimeException("3天未活跃，请重新登录");
+            }
+            LAST_ACTIVE.put(userId, dbLast > 0L ? dbLast : now);
+        }
+    }
+
+    private void flushLastActive(Long userId, long now) {
+        Long lastWrite = lastDbWrite.get(userId);
+        if (lastWrite == null || now - lastWrite > DB_WRITE_INTERVAL_MS) {
+            UpdateWrapper<User> uw = new UpdateWrapper<>();
+            uw.eq("id", userId).set("last_active_at", new Date(now));
+            userMapper.update(null, uw);
+            lastDbWrite.put(userId, now);
         }
     }
 }
