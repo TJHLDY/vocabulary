@@ -1294,13 +1294,13 @@
       <textarea id="bulletinInput" placeholder="输入公告内容，发布后所有用户打开页面时会看到弹窗提醒" maxlength="2000" rows="3" style="width:100%;border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;font-size:0.85rem;font-family:inherit;resize:vertical;outline:none;background:var(--paper);color:var(--ink);"></textarea>
       <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;">
         <span id="bulletinCount" style="font-size:0.75rem;color:#999;">0/2000</span>
-        <button class="btn-submit" onclick="publishBulletin()">发布公告</button>
+        <button class="btn-submit" id="publishBtn" onclick="publishBulletin()">发布公告</button>
       </div>
     </div>
     <div style="margin-bottom:24px;">
       <h3 style="font-size:1rem;margin-bottom:12px;">邀请码</h3>
       <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;">
-        <button class="btn-clear" onclick="genCodes()" style="border-color:var(--accent);color:var(--accent);">生成邀请码</button>
+        <button class="btn-clear" id="genCodesBtn" onclick="genCodes()" style="border-color:var(--accent);color:var(--accent);">生成邀请码</button>
         <span style="font-size:0.82rem;color:var(--ink-light);">一次生成5个</span>
       </div>
       <div id="codeList" style="font-family:Consolas,monospace;font-size:0.9rem;"></div>
@@ -1363,7 +1363,7 @@
     <div class="pwd-field"><label>新密码</label><input type="password" id="pwdNew" placeholder="至少6位"></div>
     <div class="modal-actions">
       <button class="btn-clear" onclick="closeChangePassword()">取消</button>
-      <button class="btn-submit" onclick="submitChangePassword()">确认修改</button>
+      <button class="btn-submit" id="pwdSubmitBtn" onclick="submitChangePassword()">确认修改</button>
     </div>
   </div>
 </div>
@@ -1498,6 +1498,21 @@ function showToast(msg) {
   t.classList.add('show');
   clearTimeout(_toastTimer);
   _toastTimer = setTimeout(function() { t.classList.remove('show'); }, 2200);
+}
+
+function showSpinner(el, msg) {
+  el.innerHTML = '<div class="loading-spin"><div class="spinner"></div><div>' + (msg || '加载中...') + '</div></div>';
+}
+
+function btnLoading(btn, text) {
+  btn.disabled = true;
+  btn._prevText = btn.textContent;
+  btn.textContent = text || '处理中...';
+}
+
+function btnReset(btn) {
+  btn.disabled = false;
+  btn.textContent = btn._prevText || btn.textContent;
 }
 
 (function() {
@@ -1871,6 +1886,7 @@ function searchWord(word) {
 // ---- Top Words ----
 async function loadTopWords() {
   try {
+    showSpinner(document.getElementById('topList'), '加载中...');
     const res = await fetch(`${API}/api/words/all`, {
       headers: { 'Authorization': 'Bearer ' + token }
     });
@@ -1962,6 +1978,7 @@ async function translateSentence() {
 
 async function loadSentenceHistory() {
   try {
+    showSpinner(document.getElementById('historyList'), '加载中...');
     const res = await fetch(API + '/api/translate/history', {
       headers: { 'Authorization': 'Bearer ' + token }
     });
@@ -2290,6 +2307,7 @@ function filterWordbook(keyword) {
 async function loadWordbook() {
   const area = document.getElementById('wordbookArea');
   const searchEl = document.getElementById('wbSearch');
+  showSpinner(area, '加载中...');
   try {
     const sortParam = dictationMode ? 'accuracy' : 'count';
     const res = await fetch(`${API}/api/words/all?sort=${sortParam}`, {
@@ -2327,6 +2345,7 @@ async function loadWordbook() {
 }
 
 async function deleteWord(word) {
+  showSpinner(document.getElementById('wordbookArea'), '删除中...');
   await fetch(`${API}/api/words/${encodeURIComponent(word)}`, {
     method: 'DELETE',
     headers: { 'Authorization': 'Bearer ' + token }
@@ -2336,6 +2355,7 @@ async function deleteWord(word) {
 
 async function clearWordbook() {
   if (!confirm('确定清空所有单词记录？')) return;
+  showSpinner(document.getElementById('wordbookArea'), '清空中...');
   await fetch(`${API}/api/words/all`, {
     method: 'DELETE',
     headers: { 'Authorization': 'Bearer ' + token }
@@ -2372,6 +2392,8 @@ function publishBulletin() {
   const input = document.getElementById('bulletinInput');
   const content = input.value.trim();
   if (!content) { showToast('公告内容不能为空'); return; }
+  var btn = document.getElementById('publishBtn');
+  btnLoading(btn, '发布中...');
   fetch(API + '/api/admin/bulletin', {
     method: 'POST',
         headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
@@ -2384,7 +2406,7 @@ function publishBulletin() {
     } else {
       showToast(data.msg || '发布失败');
     }
-  }).catch(e => showToast('发布失败'));
+  }).catch(e => showToast('发布失败')).finally(function() { btnReset(btn); });
 }
 
 // bulletin char count
@@ -2393,6 +2415,8 @@ document.getElementById('bulletinInput').addEventListener('input', function() {
 });
 
 async function loadAdmin() {
+  showSpinner(document.getElementById('userCardGrid'), '加载中...');
+  showSpinner(document.getElementById('codeList'), '加载中...');
   await Promise.all([loadUsers(), loadCodes()]);
   if (_adminRefreshTimer) clearInterval(_adminRefreshTimer);
   _adminRefreshTimer = setInterval(loadUsers, 10000);
@@ -2489,6 +2513,8 @@ async function loadCodes() {
 }
 
 async function genCodes() {
+  var btn = document.getElementById('genCodesBtn');
+  btnLoading(btn, '生成中...');
   try {
     const res = await fetch(API + '/api/admin/codes?count=5', {
       method: 'POST',
@@ -2496,6 +2522,7 @@ async function genCodes() {
     });
     if (res.ok) loadCodes();
   } catch(e) {}
+  btnReset(btn);
 }
 
 // ---- Tester role management ----
@@ -2549,7 +2576,7 @@ function closeInviteDialog() {
 
 async function loadMyCodes() {
   var container = document.getElementById('inviteCodeList');
-  container.innerHTML = '<div style="text-align:center;color:#999;padding:20px;">加载中...</div>';
+  showSpinner(container, '加载中...');
   try {
     var res = await fetch(API + '/api/admin/my-codes', {
       headers: { 'Authorization': 'Bearer ' + token }
@@ -2636,6 +2663,7 @@ function closeFeedbackList() {
 
 async function loadFeedback() {
   try {
+    showSpinner(document.getElementById('feedbackList'), '加载中...');
     const res = await fetch(API + '/api/admin/feedback', {
       headers: { 'Authorization': 'Bearer ' + token }
     });
@@ -2809,6 +2837,7 @@ async function setQuizModeInline(mode, btn) {
   // if quiz is active, regenerate remaining unanswered questions
   const immersive = document.getElementById('quizImmersive');
   if (immersive.classList.contains('active')) {
+    showSpinner(document.getElementById('quizCard'), '切换中...');
     const answeredIds = [];
     for (let i = 0; i < quizQuestions.length; i++) {
       if (quizAnswers[i]) answeredIds.push(quizQuestions[i].wordId);
@@ -2848,6 +2877,7 @@ function loadQuizPage() {
 
 async function loadQuizProgress() {
   try {
+    showSpinner(document.getElementById('quizRecordList'), '加载中...');
     const res = await fetch(`${API}/api/quiz/progress`, {
       headers: { 'Authorization': 'Bearer ' + token }
     });
@@ -2901,6 +2931,7 @@ function selectQuizWord(delta) {
 
 async function loadQuizTabContent() {
   try {
+    showSpinner(document.getElementById('quizRecordList'), '加载中...');
     const res = await fetch(`${API}/api/quiz/progress`, {
       headers: { 'Authorization': 'Bearer ' + token }
     });
@@ -3134,6 +3165,7 @@ function toggleAllExamples() {
 function loadQuizChart() {
   const chartDom = document.getElementById('quizChart');
   if (!chartDom) return;
+  showSpinner(chartDom, '加载中...');
   fetch(`${API}/api/quiz/stats`, {
     headers: { 'Authorization': 'Bearer ' + token }
   }).then(r => r.json()).then(data => {
@@ -3202,6 +3234,7 @@ window.addEventListener('resize', () => {
 
 async function startQuiz() {
   try {
+    showSpinner(document.getElementById('quizDefault'), '生成题目中...');
     if (quizMode === 'mixed') {
       const [res1, res2] = await Promise.all([
         fetch(`${API}/api/quiz/generate?mode=cn2en`, { headers: { 'Authorization': 'Bearer ' + token } }),
@@ -3222,6 +3255,7 @@ async function startQuiz() {
     }
     if (!quizQuestions || quizQuestions.length === 0) {
       showToast('词库中没有足够的单词，请先导入六级词库');
+      loadQuizChart();
       return;
     }
     quizIndex = 0;
@@ -3232,7 +3266,7 @@ async function startQuiz() {
     renderQuizQuestion();
     attachQuizKeyboard();
     attachQuizSwipe();
-  } catch(e) { showToast('加载题目失败'); }
+  } catch(e) { showToast('加载题目失败'); loadQuizChart(); }
 }
 
 function exitQuiz() {
@@ -3677,6 +3711,11 @@ function updateHeaderAvatar(username, avatarUrl) {
 }
 
 function openProfileSidebar() {
+  var sidebar = document.getElementById('profileSidebar');
+  var overlay = document.getElementById('profileSidebarOverlay');
+  sidebar.classList.add('show');
+  overlay.classList.add('show');
+  showSpinner(document.getElementById('profileSidebarContent'), '加载中...');
   fetch(API + '/api/user/me', {
     headers: { 'Authorization': 'Bearer ' + token }
   }).then(function(r) { return r.json(); }).then(function(data) {
@@ -3752,6 +3791,7 @@ function uploadAvatar(input) {
   if (!file) return;
   if (!file.type.startsWith('image/')) { showToast('仅支持图片文件'); return; }
   if (file.size > 5 * 1024 * 1024) { showToast('图片大小不能超过5MB'); return; }
+  showSpinner(document.getElementById('profileSidebarContent'), '上传中...');
   var formData = new FormData();
   formData.append('file', file);
   fetch(API + '/api/user/avatar', {
@@ -3766,9 +3806,11 @@ function uploadAvatar(input) {
       renderProfileSidebar(_profileData);
       showToast('头像已更新');
     } else {
+      renderProfileSidebar(_profileData);
       showToast(data.msg || '上传失败');
     }
   }).catch(function(e) {
+    renderProfileSidebar(_profileData);
     showToast('网络错误，请重试');
   });
 }
@@ -3788,6 +3830,8 @@ function submitChangePassword() {
   var newPwd = document.getElementById('pwdNew').value.trim();
   if (!oldPwd || !newPwd) { showToast('请填写旧密码和新密码'); return; }
   if (newPwd.length < 6) { showToast('新密码至少6位'); return; }
+  var btn = document.getElementById('pwdSubmitBtn');
+  btnLoading(btn, '修改中...');
   fetch(API + '/api/user/password', {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
@@ -3798,8 +3842,12 @@ function submitChangePassword() {
       closeChangePassword();
       setTimeout(function() { logout(); }, 1500);
     } else {
+      btnReset(btn);
       showToast(data.msg || '修改失败');
     }
+  }).catch(function(e) {
+    btnReset(btn);
+    showToast('网络错误');
   });
 }
 
