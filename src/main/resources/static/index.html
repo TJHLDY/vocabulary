@@ -1056,7 +1056,7 @@
       <h3 style="font-size:1rem;margin-bottom:12px;">邀请码</h3>
       <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;">
         <button class="btn-clear" onclick="genCodes()" style="border-color:var(--accent);color:var(--accent);">生成邀请码</button>
-        <span style="font-size:0.82rem;color:#999;">一次生成5个</span>
+        <span style="font-size:0.82rem;color:var(--ink-light);">一次生成5个</span>
       </div>
       <div id="codeList" style="font-family:Consolas,monospace;font-size:0.9rem;"></div>
     </div>
@@ -2060,7 +2060,7 @@ async function loadCodes() {
     const list = data.data || [];
     document.getElementById('codeList').innerHTML = list.length === 0
       ? '<span style="color:#999;">暂无可用邀请码</span>'
-      : list.map(function(c) { return '<span style="background:#f5efe0;padding:4px 10px;border-radius:4px;margin:0 6px 6px 0;display:inline-block;letter-spacing:1px;">' + escapeHtml(c.code) + '</span>'; }).join('');
+      : list.map(function(c) { return '<span style="background:var(--cream);color:var(--ink);padding:4px 10px;border-radius:4px;margin:0 6px 6px 0;display:inline-block;letter-spacing:1px;">' + escapeHtml(c.code) + '</span>'; }).join('');
   } catch(e) {}
 }
 
