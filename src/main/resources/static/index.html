@@ -474,8 +474,8 @@
   .sword {
     display: inline;
     cursor: pointer;
-    padding: 2px 4px;
-    margin: 0 1px;
+    padding: 1px 2px;
+    margin: 0;
     border-radius: 4px;
     transition: background 0.15s, color 0.15s;
     position: relative;
@@ -501,8 +501,8 @@
     border-radius: 8px;
     font-size: 0.85rem;
     pointer-events: none;
-    z-index: 200;
-    white-space: normal;
+    z-index: 9999;
+    white-space: pre-line;
     max-width: 320px;
     word-break: break-word;
     box-shadow: 0 4px 16px rgba(0,0,0,0.2);
@@ -992,11 +992,12 @@
   .quiz-record-item { display: flex; flex-direction: column; padding: 14px 16px; border-bottom: 1px solid #f5f3ef; border-left: 3px solid transparent; cursor: pointer; transition: background 0.2s, border-color 0.2s, transform 0.2s; gap: 6px; }
   .quiz-record-item:hover { background: var(--accent-light); }
   .quiz-record-item:last-child { border-bottom: none; }
+  .quiz-record-item.selected { border-bottom: 3px solid #5b9a68; }
   .quiz-record-item.mastered { border-left-color: #5b9a68; }
   .qr-row1 { display: flex; align-items: center; gap: 10px; }
   .qr-word { font-weight: 700; font-size: 1.02rem; color: var(--ink); min-width: 100px; }
   .qr-meaning { color: #888; font-size: 0.82rem; line-height: 1.4; }
-  .qr-dict-en { display: none; font-size: 0.84rem; color: var(--ink-light); line-height: 1.7; }
+  .qr-dict-en { font-size: 0.84rem; color: var(--ink); line-height: 1.7; }
   .qr-cn-meanings { display: flex; flex-direction: column; gap: 4px; }
   .qr-cn-line { font-size: 0.84rem; color: var(--ink); }
   .qr-cn-pos { display: inline-block; font-weight: 600; color: var(--accent); font-size: 0.78rem; min-width: 2.2em; }
@@ -1010,65 +1011,23 @@
   .quiz-record-item.p1 { border-left-color: #e67e22; }
   .quiz-record-item.p2 { border-left-color: #4a8fc0; }
   .quiz-empty { color: #ccc; text-align: center; padding: 32px 0; font-size: 0.85rem; }
-  /* ---- Quiz records expand ---- */
-  .btn-quiz-expand {
-    display: inline-block; background: none; border: none; color: #bbb;
-    cursor: pointer; font-size: 0.85rem; padding: 0 0 0 4px; line-height: 1;
-    vertical-align: middle; transition: color 0.2s; margin-left: 2px;
-  }
-  .btn-quiz-expand:hover { color: var(--accent); }
-  .quiz-expand-backdrop {
-    position: fixed; inset: 0; z-index: 199; background: rgba(0,0,0,0.25);
-    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
-    opacity: 0; pointer-events: none; transition: opacity 0.35s ease;
-  }
-  .quiz-expand-backdrop.show { opacity: 1; pointer-events: auto; }
-  .quiz-records-expanded-header {
-    display: none; align-items: center; justify-content: space-between;
-    padding: 18px 24px; background: var(--paper); border-bottom: 1px solid var(--border);
-    flex-shrink: 0; opacity: 0; transition: opacity 0.25s 0.12s ease;
-  }
-  .btn-quiz-collapse {
-    background: none; border: 1px solid var(--warm-border); color: var(--warm);
-    padding: 8px 18px; border-radius: 20px; cursor: pointer; font-size: 0.85rem;
-    font-family: inherit; transition: all 0.2s;
-  }
-  .btn-quiz-collapse:hover { border-color: var(--error); color: var(--error); }
-  .quiz-records {
-    transition: transform 0.4s cubic-bezier(0.22, 0.61, 0.36, 1),
-                opacity 0.35s ease;
-    transform-origin: center top;
-  }
-  .quiz-records.expanded {
-    position: fixed; top: 5%; left: 5%; width: 90vw; height: 90vh; z-index: 200;
-    border-radius: 18px; box-shadow: 0 20px 60px rgba(0,0,0,0.25);
-    background: var(--paper); display: flex; flex-direction: column; overflow: hidden;
-    animation: quizExpandIn 0.4s cubic-bezier(0.22, 0.61, 0.36, 1);
-  }
-  @keyframes quizExpandIn {
-    from { transform: scale(0.92); opacity: 0; }
-    to   { transform: scale(1); opacity: 1; }
-  }
-  .quiz-records.expanded .quiz-records-expanded-header { display: flex; opacity: 1; }
-  .quiz-records.expanded .quiz-records-tabs { display: none; }
-  .quiz-records.expanded .quiz-record-list { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 8px 0; }
-  .quiz-records.expanded .quiz-record-item { padding: 22px 28px; margin: 10px 20px; border-radius: 14px; border-bottom: none; border-left-width: 4px; background: var(--cream); box-shadow: 0 2px 8px rgba(0,0,0,0.04); transition: transform 0.2s, box-shadow 0.2s; }
-  .quiz-records.expanded .quiz-record-item:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.08); }
-  .quiz-records.expanded .qr-word { font-size: 1.35rem; font-weight: 700; min-width: 130px; color: var(--ink); letter-spacing: 0.3px; }
-  .quiz-records.expanded .qr-meaning { display: none; }
-  .quiz-records.expanded .qr-dict-en { display: block; margin-top: 12px; }
-  .quiz-records.expanded .qr-cn-line { font-size: 0.88rem; }
-  .qr-expanded-meanings { display: flex; flex-direction: column; gap: 10px; }
-  .qr-expanded-meanings .qr-pos-group { display: flex; flex-direction: column; gap: 4px; }
-  .qr-expanded-meanings .part-of-speech { display: inline-block; font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--gold); background: var(--gold-light); padding: 2px 9px; border-radius: 4px; margin-bottom: 4px; width: fit-content; }
-  .qr-expanded-meanings .qr-def-list { display: flex; flex-direction: column; gap: 2px; padding-left: 4px; }
-  .qr-expanded-meanings .qr-def-text { font-size: 0.9rem; color: var(--ink); line-height: 1.6; }
-  .qr-examples { margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--border); }
-  .qr-examples .section-label { display: block; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 1.5px; color: #999; font-weight: 600; margin-bottom: 10px; }
-  .qr-examples .qr-ex-item { margin-bottom: 10px; padding-left: 10px; border-left: 3px solid var(--accent); }
+  .quiz-records { background: var(--paper); border-radius: var(--radius-sm); box-shadow: var(--shadow-sm); overflow: hidden; }
+  .qr-examples { margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--border); }
+  .qr-examples.collapsed { display: none; }
+  .qr-examples .section-label { display: block; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 1.5px; color: #999; font-weight: 600; margin-bottom: 6px; }
+  .qr-examples .qr-ex-item { margin-bottom: 8px; padding-left: 8px; border-left: 2px solid var(--accent); }
   .qr-examples .qr-ex-item:last-child { margin-bottom: 0; }
-  .qr-examples .qr-ex-text { font-size: 0.88rem; color: var(--ink); line-height: 1.7; font-style: italic; }
-  .qr-examples .qr-ex-trans { font-size: 0.82rem; color: #888; margin-top: 3px; }
+  .qr-examples .qr-ex-text { font-size: 0.82rem; color: var(--ink); line-height: 1.5; font-style: italic; }
+  .qr-examples .qr-ex-trans { font-size: 0.78rem; color: #888; margin-top: 2px; }
+  .qr-ex-toggle { background: none; border: none; color: #bbb; cursor: pointer; font-size: 0.7rem; padding: 2px 6px; transition: color 0.15s; }
+  .qr-ex-toggle:hover { color: var(--accent); }
+  .qr-ex-toggle-all { background: none; border: 1px solid var(--border); color: var(--ink-light); cursor: pointer; font-size: 0.72rem; padding: 3px 10px; border-radius: 12px; transition: all 0.15s; margin-left: 8px; }
+  .qr-ex-toggle-all:hover { border-color: var(--accent); color: var(--accent); }
+  .qr-expanded-meanings { display: flex; flex-direction: column; gap: 2px; }
+  .qr-expanded-meanings .qr-pos-group { display: flex; flex-wrap: wrap; gap: 2px 0; }
+  .qr-expanded-meanings .qr-pos-label { font-size: 0.78rem; font-weight: 600; color: var(--accent); margin-right: 4px; }
+  .qr-expanded-meanings .qr-def-text { font-size: 0.84rem; color: var(--ink); line-height: 1.5; }
+
   /* dark mode quiz */
   :root[data-theme="dark"] .qr-dot.filled-0 { background: #ef5350; }
   :root[data-theme="dark"] .qr-dot.filled-1 { background: #f0a060; }
@@ -1077,7 +1036,6 @@
   :root[data-theme="dark"] .quiz-record-item.p1 { border-left-color: #f0a060; }
   :root[data-theme="dark"] .quiz-record-item.p2 { border-left-color: #5ba0d0; }
   :root[data-theme="dark"] .quiz-record-item.mastered { border-left-color: #66bb6a; }
-  :root[data-theme="dark"] .quiz-expand-backdrop { background: rgba(0,0,0,0.5); }
   /* immersive quiz */
   .quiz-immersive { display: none; position: fixed; inset: 0; background: var(--cream); z-index: 999; flex-direction: column; align-items: center; justify-content: center; }
   .quiz-immersive.active { display: flex; }
@@ -1219,18 +1177,13 @@
         </div>
       </div>
       <div class="quiz-records" id="quizRecords">
-        <div class="quiz-records-expanded-header" id="quizExpandedHeader">
-          <span style="font-weight:600;font-size:1.05rem;">📝 错题本</span>
-          <button class="btn-quiz-collapse" onclick="toggleQuizExpand()">✕ 收起</button>
-        </div>
         <div class="quiz-records-tabs">
-          <button id="qtabWrong" class="active" onclick="switchQuizTab('wrong')">错题 <span class="count" id="wrongCount"></span><span class="btn-quiz-expand" onclick="event.stopPropagation();toggleQuizExpand()" title="展开错题本">⛶</span></button>
+          <button id="qtabWrong" class="active" onclick="switchQuizTab('wrong')">错题 <span class="count" id="wrongCount"></span></button>
           <button id="qtabMastered" onclick="switchQuizTab('mastered')">已掌握 <span class="count" id="masteredCount"></span></button>
         </div>
-        <div class="quiz-hint" id="quizHint" style="display:none;padding:8px 16px;font-size:0.78rem;color:#999;border-bottom:1px solid #f5f3ef;">提示：错题连续答对 3 次即可移入已掌握</div>
+        <div class="quiz-hint" id="quizHint" style="display:none;padding:8px 16px;font-size:0.78rem;color:#999;border-bottom:1px solid #f5f3ef;">提示：错题连续答对 3 次即可移入已掌握<button class="qr-ex-toggle-all" onclick="event.stopPropagation();toggleAllExamples()" id="btnToggleAllEx" title="展开/收起全部例句">📖 展开例句</button></div>
         <div class="quiz-record-list" id="quizRecordList"></div>
       </div>
-      <div class="quiz-expand-backdrop" id="quizExpandBackdrop" onclick="toggleQuizExpand()"></div>
     </div>
     <!-- 沉浸式答题 -->
     <div class="quiz-immersive" id="quizImmersive">
@@ -1413,7 +1366,8 @@ function switchTab(tab) {
   if (tab === 'book') loadWordbook();
   if (tab === 'admin') loadAdmin();
   if (tab === 'search') { document.getElementById('wordInput').focus(); loadSentenceHistory(); }
-  if (tab === 'quiz') loadQuizPage();
+  if (tab === 'quiz') { loadQuizPage(); document.addEventListener('keydown', handleQuizKey); }
+  else { _selectedWordIndex = -1; document.removeEventListener('keydown', handleQuizKey); }
 }
 
 // ---- Auth helpers ----
@@ -2050,23 +2004,6 @@ function renderSidebar(word, dictData, dbData) {
   }
 
   if (dictData && dictData.length > 0) {
-    for (const e of dictData) {
-      for (const meaning of e.meanings || []) {
-        html += '<div class="meaning-group">';
-        html += '<span class="part-of-speech">' + escapeHtml(meaning.partOfSpeech || '') + '</span>';
-        const defs = (meaning.definitions || []).slice(0, 3);
-        for (const def of defs) {
-          html += '<div class="def-item">';
-          html += '<div class="def-text">' + escapeHtml(def.definition) + '</div>';
-          if (def.example) {
-            html += '<div class="def-example">' + escapeHtml(def.example) + '</div>';
-          }
-          html += '</div>';
-        }
-        html += '</div>';
-      }
-    }
-
     const allExamples = [];
     for (const e of dictData) {
       for (const meaning of e.meanings || []) {
@@ -2079,8 +2016,9 @@ function renderSidebar(word, dictData, dbData) {
     if (uniqueExamples.length > 0) {
       html += '<div class="examples-section">';
       html += '<span class="section-label">例句</span>';
-      for (const ex of uniqueExamples) {
-        html += '<div class="example-item"><div class="example-text">' + escapeHtml(ex) + '</div><div class="example-translation" id="sb-ex-' + btoa(encodeURIComponent(ex)).slice(0,12) + '"></div></div>';
+      for (let i = 0; i < uniqueExamples.length; i++) {
+        const ex = uniqueExamples[i];
+        html += '<div class="example-item"><div class="example-text">' + escapeHtml(ex) + '</div><div class="example-translation" id="sb-ex-' + i + '"></div></div>';
       }
       html += '</div>';
     }
@@ -2088,10 +2026,6 @@ function renderSidebar(word, dictData, dbData) {
 
   if (!dictData && (!dbData || !dbData.fullChinese)) {
     html += '<div class="error-msg">暂无详细释义</div>';
-  }
-
-  if (dbData) {
-    html += '<div class="query-count">已存入 · 每次点击都计入查询</div>';
   }
 
   content.innerHTML = html;
@@ -2113,22 +2047,50 @@ async function loadSidebarExampleTranslations(dictData) {
   const uniqueExamples = [...new Set(allExamples)].slice(0, 5);
   if (uniqueExamples.length === 0) return;
 
-  const results = await Promise.allSettled(
-    uniqueExamples.map(ex =>
-      fetch(`${API}/api/translate`, {
-        method: 'POST',
-        headers: authHeaders(),
-        body: JSON.stringify({ text: ex, from: 'en', to: 'zh' })
-      }).then(r => r.ok ? r.json() : null)
+  const wordSet = new Set();
+  for (const ex of uniqueExamples) {
+    for (let t of ex.split(/[\s,.!?;:"]+/)) {
+      t = t.replace(/[^a-zA-Z0-9-]/g, '').toLowerCase();
+      if (t.length > 2 && !stopwordsRe.test(t)) wordSet.add(t);
+    }
+  }
+  const wordArr = [...wordSet];
+
+  const [transResults, mResults] = await Promise.all([
+    Promise.allSettled(
+      uniqueExamples.map(ex =>
+        fetch(`${API}/api/translate`, {
+          method: 'POST',
+          headers: authHeaders(),
+          body: JSON.stringify({ text: ex, from: 'en', to: 'zh' })
+        }).then(r => r.ok ? r.json() : null)
+      )
+    ),
+    Promise.allSettled(
+      wordArr.map(w =>
+        fetch(`${API}/api/words/translate?word=${encodeURIComponent(w)}`, {
+          headers: { 'Authorization': 'Bearer ' + token }
+        }).then(r => r.ok ? r.json() : null)
+      )
     )
-  );
+  ]);
+
+  const meaningMap = {};
+  for (let i = 0; i < wordArr.length; i++) {
+    const m = mResults[i];
+    meaningMap[wordArr[i]] = (m.status === 'fulfilled' && m.value && m.value.code === 200 && m.value.data) ? formatDictBrief(m.value.data) : '';
+  }
 
   for (let i = 0; i < uniqueExamples.length; i++) {
-    const r = results[i];
-    if (r.status !== 'fulfilled' || !r.value || r.value.code !== 200 || !r.value.data) continue;
-    const id = 'sb-ex-' + btoa(encodeURIComponent(uniqueExamples[i])).slice(0,12);
-    const el = document.getElementById(id);
-    if (el) el.textContent = r.value.data.translation;
+    const transEl = document.getElementById('sb-ex-' + i);
+    const r = transResults[i];
+    if (transEl && r.status === 'fulfilled' && r.value && r.value.code === 200 && r.value.data) {
+      transEl.textContent = r.value.data.translation;
+    }
+    const textEl = transEl && transEl.previousElementSibling;
+    if (textEl && textEl.classList.contains('example-text')) {
+      textEl.innerHTML = buildInteractiveHtml(uniqueExamples[i], meaningMap);
+    }
   }
 }
 
@@ -2666,7 +2628,14 @@ function wordDiff(userInput, correct) {
 
 function formatDictBrief(dict) {
   if (!dict || !dict.meanings || !dict.meanings.length) return '';
-  return dict.meanings[0].replace(/[；;，,]$/, '');
+  return dict.meanings.map(line => {
+    const m = line.match(/^([a-z]+\.)\s*(.+)$/i);
+    if (m) {
+      const parts = m[2].split(/[；;]/).map(s => s.trim()).filter(Boolean).slice(0, 3);
+      return m[1] + ' ' + parts.join('；');
+    }
+    return line;
+  }).join('\n');
 }
 
 function escapeHtml(s) {
@@ -2684,8 +2653,7 @@ let quizCorrectCount = 0;
 let quizMode = 'cn2en';
 let quizAdvanceTimer = null;
 let quizTabActive = 'wrong';
-let quizExpanded = false;
-
+let _selectedWordIndex = -1;
 function setQuizMode(mode, btn) {
   quizMode = mode;
   btn.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('active'));
@@ -2745,14 +2713,6 @@ function loadQuizPage() {
   document.getElementById('confettiCanvas').classList.remove('active');
   detachQuizKeyboard();
   detachQuizSwipe();
-  if (quizExpanded) {
-    quizExpanded = false;
-    document.getElementById('quizRecords').classList.remove('expanded');
-    document.getElementById('quizExpandBackdrop').classList.remove('show');
-    document.body.style.overflow = '';
-    const topRow = document.querySelector('.quiz-top-row');
-    if (topRow) topRow.style.display = '';
-  }
   loadQuizProgress();
   loadQuizChart();
 }
@@ -2776,151 +2736,38 @@ async function loadQuizProgress() {
   } catch(e) {}
 }
 
-function toggleQuizExpand() {
-  quizExpanded = !quizExpanded;
-  const records = document.getElementById('quizRecords');
-  const backdrop = document.getElementById('quizExpandBackdrop');
-  const topRow = document.querySelector('.quiz-top-row');
-  if (quizExpanded) {
-    backdrop.classList.add('show');
-    records.classList.add('expanded');
-    if (topRow) topRow.style.display = 'none';
-    document.body.style.overflow = 'hidden';
-    loadExpandedDicts();
-  } else {
-    backdrop.classList.remove('show');
-    records.classList.remove('expanded');
-    if (topRow) topRow.style.display = '';
-    document.body.style.overflow = '';
-  }
-}
-
-async function loadExpandedDicts() {
-  const items = document.querySelectorAll('#quizRecordList .quiz-record-item:not(.mastered)');
-  const tasks = [];
-  for (const item of items) {
-    const wordEl = item.querySelector('.qr-word');
-    if (!wordEl) continue;
-    const word = wordEl.textContent.trim();
-    if (!word) continue;
-    tasks.push(
-      Promise.allSettled([
-        fetch(`${API}/api/words?word=${encodeURIComponent(word)}`, {
-          method: 'POST',
-          headers: { 'Authorization': 'Bearer ' + token }
-        }).then(r => r.ok ? r.json() : null),
-        fetch(`${DICT}/${encodeURIComponent(word)}`).then(r => r.ok ? r.json() : null)
-      ]).then(([backendRes, dictRes]) => ({
-        word, el: item,
-        backendData: backendRes.status === 'fulfilled' ? backendRes.value : null,
-        dictData: dictRes.status === 'fulfilled' ? dictRes.value : null
-      }))
-    );
-  }
-  const results = await Promise.allSettled(tasks);
-
-  const exToTranslate = [];
-  const renderQueue = [];
-
-  for (const r of results) {
-    if (r.status !== 'fulfilled' || !r.value) continue;
-    const { el, backendData, dictData } = r.value;
-    const fullChinese = backendData && backendData.code === 200 && backendData.data
-      ? (backendData.data.fullChinese || backendData.data.chinese) : null;
-
-    const posGroups = {};
-    if (fullChinese) {
-      const lines = fullChinese.split('\n').filter(l => l.trim());
-      for (const line of lines) {
-        const m = line.match(/^([a-z]+\.)\s*(.+)$/i);
-        if (m) {
-          const pos = m[1];
-          const meanings = m[2].split(/[；;]/).map(s => s.trim()).filter(Boolean);
-          if (!posGroups[pos]) posGroups[pos] = [];
-          posGroups[pos].push(...meanings);
-        }
-      }
-      for (const pos in posGroups) {
-        posGroups[pos] = posGroups[pos].slice(0, 3);
-      }
-    }
-
-    const examples = [];
-    if (dictData && Array.isArray(dictData)) {
-      for (const entry of dictData) {
-        for (const meaning of entry.meanings || []) {
-          for (const def of meaning.definitions || []) {
-            if (def.example && !examples.includes(def.example)) examples.push(def.example);
-            if (examples.length >= 3) break;
-          }
-          if (examples.length >= 3) break;
-        }
-        if (examples.length >= 3) break;
-      }
-    }
-
-    for (const ex of examples) {
-      if (!exToTranslate.some(e => e.text === ex)) exToTranslate.push({ text: ex });
-    }
-    renderQueue.push({ el, posGroups, examples });
-  }
-
-  const transMap = {};
-  if (exToTranslate.length > 0) {
-    const transResults = await Promise.allSettled(
-      exToTranslate.map(e =>
-        fetch(`${API}/api/translate`, {
-          method: 'POST',
-          headers: authHeaders(),
-          body: JSON.stringify({ text: e.text, from: 'en', to: 'zh' })
-        }).then(r => r.ok ? r.json() : null)
-      )
-    );
-    for (let i = 0; i < exToTranslate.length; i++) {
-      const t = transResults[i];
-      if (t.status === 'fulfilled' && t.value && t.value.code === 200 && t.value.data) {
-        transMap[exToTranslate[i].text] = t.value.data.translation;
-      }
-    }
-  }
-
-  for (const { el, posGroups, examples } of renderQueue) {
-    let html = '<div class="qr-expanded-meanings">';
-    for (const pos in posGroups) {
-      html += '<div class="qr-pos-group">';
-      html += '<span class="part-of-speech">' + escapeHtml(pos) + '</span>';
-      html += '<div class="qr-def-list">';
-      for (const meaning of posGroups[pos]) {
-        html += '<div class="qr-def-text">' + escapeHtml(meaning) + '</div>';
-      }
-      html += '</div></div>';
-    }
-    html += '</div>';
-
-    if (examples.length > 0) {
-      html += '<div class="qr-examples">';
-      html += '<span class="section-label">例句</span>';
-      for (const ex of examples) {
-        html += '<div class="qr-ex-item">';
-        html += '<div class="qr-ex-text">' + escapeHtml(ex) + '</div>';
-        if (transMap[ex]) {
-          html += '<div class="qr-ex-trans">' + escapeHtml(transMap[ex]) + '</div>';
-        }
-        html += '</div>';
-      }
-      html += '</div>';
-    }
-
-    const dictEn = el.querySelector('.qr-dict-en');
-    if (dictEn) dictEn.innerHTML = html;
-  }
-}
-
 function switchQuizTab(tab) {
   quizTabActive = tab;
+  _selectedWordIndex = -1;
   document.getElementById('qtabWrong').classList.toggle('active', tab === 'wrong');
   document.getElementById('qtabMastered').classList.toggle('active', tab === 'mastered');
   loadQuizTabContent();
+  if (tab === 'wrong') {
+    setTimeout(() => {
+      document.getElementById('quizRecords').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
+  }
+}
+
+function handleQuizKey(e) {
+  if (quizTabActive !== 'wrong') return;
+  if (e.key === 'ArrowDown') { e.preventDefault(); selectQuizWord(1); }
+  if (e.key === 'ArrowUp') { e.preventDefault(); selectQuizWord(-1); }
+}
+
+function selectQuizWord(delta) {
+  const items = document.querySelectorAll('#quizRecordList .quiz-record-item:not(.mastered)');
+  if (!items.length) return;
+  const next = _selectedWordIndex + delta;
+  if (next < -1 || next >= items.length) return;
+  if (_selectedWordIndex >= 0 && _selectedWordIndex < items.length) {
+    items[_selectedWordIndex].classList.remove('selected');
+  }
+  _selectedWordIndex = next;
+  if (_selectedWordIndex >= 0) {
+    items[_selectedWordIndex].classList.add('selected');
+    items[_selectedWordIndex].scrollIntoView({ behavior: 'instant', block: 'nearest' });
+  }
 }
 
 async function loadQuizTabContent() {
@@ -2949,12 +2796,11 @@ function renderQuizRecordList(items, isMastered) {
   }
   list.innerHTML = items.map(w => {
     if (isMastered) {
-      return `<div class="quiz-record-item mastered" onclick="openSidebar('${escapeHtml(w.word)}')">
+      return `<div class="quiz-record-item mastered" onclick="expandToSearch('${escapeHtml(w.word)}')">
         <div class="qr-row1">
           <span class="qr-word">${escapeHtml(w.word)}</span>
           <span class="qr-tag">已掌握</span>
         </div>
-        <div class="qr-dict-en"></div>
         <div class="qr-meaning">${escapeHtml(w.meaning)}</div>
       </div>`;
     }
@@ -2965,15 +2811,195 @@ function renderQuizRecordList(items, isMastered) {
       const filled = i < cc;
       dotsHtml += `<span class="qr-dot${filled ? ' filled-' + cc : ''}"></span>`;
     }
-    return `<div class="quiz-record-item ${pCls}" onclick="openSidebar('${escapeHtml(w.word)}')">
-      <div class="qr-row1">
+    return `<div class="quiz-record-item ${pCls}">
+      <div class="qr-row1" onclick="expandToSearch('${escapeHtml(w.word)}')">
         <span class="qr-word">${escapeHtml(w.word)}</span>
         <span class="qr-progress">${dotsHtml}</span>
       </div>
-      <div class="qr-dict-en"></div>
+      <div class="qr-dict-en" data-word="${escapeHtml(w.word)}"></div>
       <div class="qr-meaning">${escapeHtml(w.meaning)}</div>
+      <div class="qr-ex-wrap" data-word="${escapeHtml(w.word)}">
+        <div class="qr-examples collapsed"></div>
+        <button class="qr-ex-toggle" onclick="event.stopPropagation();toggleItemExamples(this)" title="展开例句">▾ 展开例句</button>
+      </div>
     </div>`;
   }).join('');
+  if (!isMastered) loadQuizExamples();
+}
+
+let _examplesAllCollapsed = true;
+
+async function fetchExpandedData(words) {
+  const tasks = words.map(word =>
+    Promise.allSettled([
+      fetch(`${API}/api/words?word=${encodeURIComponent(word)}`, {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + token }
+      }).then(r => r.ok ? r.json() : null),
+      fetch(`${DICT}/${encodeURIComponent(word)}`).then(r => r.ok ? r.json() : null)
+    ]).then(([backendRes, dictRes]) => ({
+      word,
+      backendData: backendRes.status === 'fulfilled' ? backendRes.value : null,
+      dictData: dictRes.status === 'fulfilled' ? dictRes.value : null
+    }))
+  );
+  const results = await Promise.allSettled(tasks);
+  const cache = {};
+  const exToTranslate = [];
+
+  for (const r of results) {
+    if (r.status !== 'fulfilled' || !r.value) continue;
+    const { word, backendData, dictData } = r.value;
+    const fullChinese = backendData && backendData.code === 200 && backendData.data
+      ? (backendData.data.fullChinese || backendData.data.chinese) : null;
+    const posGroups = {};
+    if (fullChinese) {
+      const lines = fullChinese.split('\n').filter(l => l.trim());
+      for (const line of lines) {
+        const m = line.match(/^([a-z]+\.)\s*(.+)$/i);
+        if (m) {
+          const pos = m[1];
+          const meanings = m[2].split(/[；;]/).map(s => s.trim()).filter(Boolean);
+          if (!posGroups[pos]) posGroups[pos] = [];
+          posGroups[pos].push(...meanings);
+        }
+      }
+      for (const pos in posGroups) { posGroups[pos] = posGroups[pos].slice(0, 3); }
+    }
+    const examples = [];
+    if (dictData && Array.isArray(dictData)) {
+      for (const entry of dictData) {
+        for (const meaning of entry.meanings || []) {
+          for (const def of meaning.definitions || []) {
+            if (def.example && !examples.includes(def.example)) examples.push(def.example);
+            if (examples.length >= 3) break;
+          }
+          if (examples.length >= 3) break;
+        }
+        if (examples.length >= 3) break;
+      }
+    }
+    for (const ex of examples) {
+      if (!exToTranslate.some(e => e.text === ex)) exToTranslate.push({ text: ex });
+    }
+    cache[word] = { posGroups, examples };
+  }
+  const transMap = {};
+  if (exToTranslate.length > 0) {
+    const transResults = await Promise.allSettled(
+      exToTranslate.map(e =>
+        fetch(`${API}/api/translate`, {
+          method: 'POST', headers: authHeaders(),
+          body: JSON.stringify({ text: e.text, from: 'en', to: 'zh' })
+        }).then(r => r.ok ? r.json() : null)
+      )
+    );
+    for (let i = 0; i < exToTranslate.length; i++) {
+      const t = transResults[i];
+      if (t.status === 'fulfilled' && t.value && t.value.code === 200 && t.value.data) {
+        transMap[exToTranslate[i].text] = t.value.data.translation;
+      }
+    }
+  }
+  const wordSet = new Set();
+  for (const w in cache) {
+    for (const ex of cache[w].examples) {
+      for (let t of ex.split(/[\s,.!?;:"]+/)) {
+        t = t.replace(/[^a-zA-Z0-9-]/g, '').toLowerCase();
+        if (t.length > 2 && !stopwordsRe.test(t)) wordSet.add(t);
+      }
+    }
+  }
+  const wordArr = [...wordSet];
+  const meaningMap = {};
+  if (wordArr.length > 0) {
+    const mResults = await Promise.allSettled(
+      wordArr.map(w =>
+        fetch(`${API}/api/words/translate?word=${encodeURIComponent(w)}`, {
+          headers: { 'Authorization': 'Bearer ' + token }
+        }).then(r => r.ok ? r.json() : null)
+      )
+    );
+    for (let i = 0; i < wordArr.length; i++) {
+      const m = mResults[i];
+      meaningMap[wordArr[i]] = (m.status === 'fulfilled' && m.value && m.value.code === 200 && m.value.data) ? formatDictBrief(m.value.data) : '';
+    }
+  }
+  return { cache, transMap, meaningMap };
+}
+
+async function loadQuizExamples() {
+  const wraps = document.querySelectorAll('#quizRecordList .qr-ex-wrap');
+  const words = [];
+  for (const w of wraps) { words.push(w.dataset.word); }
+  if (!words.length) return;
+
+  try {
+    const res = await fetch(`${API}/api/quiz/progress`, {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    const data = await res.json();
+    if (data.code !== 200) return;
+    const wrong = (data.data.wrong || []).map(w => w.word);
+
+    const cacheRes = await fetchExpandedData(wrong);
+    const { cache, transMap, meaningMap } = cacheRes;
+
+    for (const w of wraps) {
+      const word = w.dataset.word;
+      const entry = cache[word];
+      if (!entry) continue;
+
+      const dictEl = w.parentElement.querySelector('.qr-dict-en');
+      if (dictEl) {
+        let h = '<div class="qr-expanded-meanings">';
+        for (const pos in entry.posGroups) {
+          h += '<div class="qr-pos-group">';
+          h += '<span class="qr-pos-label">' + escapeHtml(pos) + '</span>';
+          h += '<span class="qr-def-text">' + escapeHtml(entry.posGroups[pos].join('；')) + '</span>';
+          h += '</div>';
+        }
+        h += '</div>';
+        dictEl.innerHTML = h;
+        const meaningEl = dictEl.parentElement.querySelector('.qr-meaning');
+        if (meaningEl) meaningEl.style.display = 'none';
+      }
+
+      const exDiv = w.querySelector('.qr-examples');
+      const toggleBtn = w.querySelector('.qr-ex-toggle');
+      if (entry.examples.length > 0) {
+        let exHtml = '';
+        for (const ex of entry.examples) {
+          exHtml += '<div class="qr-ex-item">';
+          exHtml += '<div class="qr-ex-text">' + buildInteractiveHtml(ex, meaningMap) + '</div>';
+          if (transMap[ex]) {
+            exHtml += '<div class="qr-ex-trans">' + escapeHtml(transMap[ex]) + '</div>';
+          }
+          exHtml += '</div>';
+        }
+        exDiv.innerHTML = exHtml;
+      } else {
+        if (toggleBtn) toggleBtn.style.display = 'none';
+      }
+    }
+  } catch(e) {}
+}
+
+function toggleItemExamples(btn) {
+  const exDiv = btn.parentElement.querySelector('.qr-examples');
+  if (!exDiv) return;
+  const collapsed = exDiv.classList.toggle('collapsed');
+  btn.textContent = collapsed ? '▾ 展开例句' : '▴ 收起例句';
+}
+
+function toggleAllExamples() {
+  _examplesAllCollapsed = !_examplesAllCollapsed;
+  const allEx = document.querySelectorAll('#quizRecordList .qr-examples');
+  const allBtns = document.querySelectorAll('#quizRecordList .qr-ex-toggle');
+  allEx.forEach(el => el.classList.toggle('collapsed', _examplesAllCollapsed));
+  allBtns.forEach(b => { b.textContent = _examplesAllCollapsed ? '▾ 展开例句' : '▴ 收起例句'; });
+  const globalBtn = document.getElementById('btnToggleAllEx');
+  if (globalBtn) globalBtn.textContent = _examplesAllCollapsed ? '📖 展开例句' : '📖 收起例句';
 }
 
 function loadQuizChart() {
@@ -3401,6 +3427,7 @@ function finishQuiz() {
       setTimeout(() => showResultModal(false), 2000);
     }
   });
+  loadQuizTabContent();
 }
 
 function showResultModal(allMastered) {
