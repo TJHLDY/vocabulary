@@ -1987,7 +1987,6 @@ async function translateSentence() {
 
 async function loadSentenceHistory() {
   try {
-    showSpinner(document.getElementById('historyList'), '加载中...');
     const res = await fetch(API + '/api/translate/history', {
       headers: { 'Authorization': 'Bearer ' + token }
     });
@@ -2316,7 +2315,6 @@ function filterWordbook(keyword) {
 async function loadWordbook() {
   const area = document.getElementById('wordbookArea');
   const searchEl = document.getElementById('wbSearch');
-  showSpinner(area, '加载中...');
   try {
     const sortParam = dictationMode ? 'accuracy' : 'count';
     const res = await fetch(`${API}/api/words/all?sort=${sortParam}`, {
@@ -2817,6 +2815,7 @@ let quizAnswers = [];          // { chosen, correct, correctWord, wordId }
 let quizIndex = 0;
 let quizCorrectCount = 0;
 let quizMode = 'cn2en';
+let _resetPromise = null;
 let quizAdvanceTimer = null;
 let quizTabActive = 'wrong';
 let _selectedWordIndex = -1;
@@ -2886,7 +2885,6 @@ function loadQuizPage() {
 
 async function loadQuizProgress() {
   try {
-    showSpinner(document.getElementById('quizRecordList'), '加载中...');
     const res = await fetch(`${API}/api/quiz/progress`, {
       headers: { 'Authorization': 'Bearer ' + token }
     });
@@ -2940,7 +2938,6 @@ function selectQuizWord(delta) {
 
 async function loadQuizTabContent() {
   try {
-    showSpinner(document.getElementById('quizRecordList'), '加载中...');
     const res = await fetch(`${API}/api/quiz/progress`, {
       headers: { 'Authorization': 'Bearer ' + token }
     });
@@ -3174,7 +3171,6 @@ function toggleAllExamples() {
 function loadQuizChart() {
   const chartDom = document.getElementById('quizChart');
   if (!chartDom) return;
-  showSpinner(chartDom, '加载中...');
   fetch(`${API}/api/quiz/stats`, {
     headers: { 'Authorization': 'Bearer ' + token }
   }).then(r => r.json()).then(data => {
@@ -3243,7 +3239,6 @@ window.addEventListener('resize', () => {
 
 async function startQuiz() {
   try {
-    showSpinner(document.getElementById('quizDefault'), '生成题目中...');
     if (quizMode === 'mixed') {
       const [res1, res2] = await Promise.all([
         fetch(`${API}/api/quiz/generate?mode=cn2en`, { headers: { 'Authorization': 'Bearer ' + token } }),
@@ -3259,12 +3254,12 @@ async function startQuiz() {
         headers: { 'Authorization': 'Bearer ' + token }
       });
       const data = await res.json();
-      if (data.code !== 200) return;
+      if (data.code !== 200) { showToast('加载题目失败'); loadQuizPage(); return; }
       quizQuestions = data.data.questions;
     }
     if (!quizQuestions || quizQuestions.length === 0) {
       showToast('词库中没有足够的单词，请先导入六级词库');
-      loadQuizChart();
+      loadQuizPage();
       return;
     }
     quizIndex = 0;
@@ -3630,20 +3625,20 @@ function showResultModal(allMastered) {
   document.getElementById('resultOverlay').classList.add('show');
 
   if (allMastered) {
-    fetch(`${API}/api/quiz/reset`, { method: 'POST', headers: { 'Authorization': 'Bearer ' + token } }).catch(e => {});
+    _resetPromise = fetch(`${API}/api/quiz/reset`, { method: 'POST', headers: { 'Authorization': 'Bearer ' + token } }).catch(e => {});
   }
 }
 
 function backFromResult() {
   document.getElementById('resultOverlay').classList.remove('show');
   document.getElementById('confettiCanvas').classList.remove('active');
-  loadQuizProgress();
-  loadQuizChart();
+  loadQuizPage();
 }
 
-function continueQuiz() {
+async function continueQuiz() {
   document.getElementById('resultOverlay').classList.remove('show');
   document.getElementById('confettiCanvas').classList.remove('active');
+  if (_resetPromise) { await _resetPromise; _resetPromise = null; }
   startQuiz();
 }
 
