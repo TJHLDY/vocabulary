@@ -12,6 +12,14 @@ public interface WordMapper extends BaseMapper<Word> {
 
     List<Word> selectByUserId(@Param("userId") Long userId, @Param("sort") String sort);
 
+    List<Word> selectPageByUserId(@Param("userId") Long userId,
+                                  @Param("sort") String sort,
+                                  @Param("keyword") String keyword,
+                                  @Param("offset") int offset,
+                                  @Param("size") int size);
+
+    int countByUserId(@Param("userId") Long userId, @Param("keyword") String keyword);
+
     int recordDictation(@Param("userId") Long userId, @Param("word") String word, @Param("correct") boolean correct);
 
     int deleteByUserAndWord(@Param("userId") Long userId, @Param("word") String word);

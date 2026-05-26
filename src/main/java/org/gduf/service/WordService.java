@@ -10,6 +10,7 @@ import java.util.Map;
 public interface WordService extends IService<Word> {
     Map<String, Object> saveOrIncrement(Long userId, String word);
     List<Word> myWords(Long userId, String sort);
+    Map<String, Object> myWordsPage(Long userId, String sort, String keyword, int page, int size);
     List<WordRelation> getRelations(Long userId, String word);
     String translateWord(String word, String from, String to);
     Map<String, Object> lookupWord(String word);

@@ -69,6 +69,27 @@ public class WordServiceImpl extends ServiceImpl<WordMapper, Word> implements Wo
     }
 
     @Override
+    public Map<String, Object> myWordsPage(Long userId, String sort, String keyword, int page, int size) {
+        int safePage = Math.max(page, 1);
+        int safeSize = Math.min(Math.max(size, 20), 200);
+        int offset = (safePage - 1) * safeSize;
+        String kw = keyword == null ? "" : keyword.trim();
+
+        int total = baseMapper.countByUserId(userId, kw);
+        List<Word> items = total == 0
+                ? Collections.emptyList()
+                : baseMapper.selectPageByUserId(userId, sort, kw, offset, safeSize);
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("items", items);
+        result.put("total", total);
+        result.put("page", safePage);
+        result.put("size", safeSize);
+        result.put("hasMore", offset + items.size() < total);
+        return result;
+    }
+
+    @Override
     public List<WordRelation> getRelations(Long userId, String word) {
         return relationMapper.selectTopByWord(userId, word.toLowerCase().trim(), 5);
     }

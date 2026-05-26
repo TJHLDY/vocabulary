@@ -36,10 +36,43 @@ public class AdminController {
 
     @GetMapping("/users")
     @PreAuthorize("hasRole('ADMIN')")
-    public R users() {
+    public R users(@RequestParam(required = false) Integer page,
+                   @RequestParam(required = false) Integer size) {
+        if (page != null || size != null) {
+            int safePage = Math.max(page == null ? 1 : page, 1);
+            int safeSize = Math.min(Math.max(size == null ? 40 : size, 10), 100);
+            int offset = (safePage - 1) * safeSize;
+            long total = userService.count();
+            List<User> list = total == 0 ? Collections.emptyList() : userService.list(new QueryWrapper<User>()
+                    .select("id", "username", "email", "enabled", "role", "created_at", "invited_by")
+                    .orderByDesc("created_at")
+                    .last("LIMIT " + offset + ", " + safeSize));
+            enrichUsers(list);
+
+            long now = System.currentTimeMillis();
+            long fiveMin = 5 * 60 * 1000;
+            long onlineTotal = JwtAuthFilter.LAST_ACTIVE.values().stream()
+                    .filter(last -> last != null && (now - last) < fiveMin)
+                    .count();
+
+            Map<String, Object> result = new HashMap<>();
+            result.put("items", list);
+            result.put("total", total);
+            result.put("onlineTotal", onlineTotal);
+            result.put("page", safePage);
+            result.put("size", safeSize);
+            result.put("hasMore", offset + list.size() < total);
+            return R.ok(result);
+        }
+
         List<User> list = userService.list(new QueryWrapper<User>()
                 .select("id", "username", "email", "enabled", "role", "created_at", "invited_by")
                 .orderByDesc("created_at"));
+        enrichUsers(list);
+        return R.ok(list);
+    }
+
+    private void enrichUsers(List<User> list) {
         long now = System.currentTimeMillis();
         long fiveMin = 5 * 60 * 1000;
 
@@ -64,14 +97,18 @@ public class AdminController {
             }
         }
 
-        List<Map<String, Object>> countRows = userService.listMaps(
-            new QueryWrapper<User>()
-                .select("invited_by, count(*) as cnt")
-                .isNotNull("invited_by")
-                .groupBy("invited_by"));
-        for (Map<String, Object> row : countRows) {
-            Long inviterId = (Long) row.get("invited_by");
-            inviteCountMap.put(inviterId, ((Number) row.get("cnt")).intValue());
+        List<Long> pageUserIds = list.stream().map(User::getId).toList();
+        if (!pageUserIds.isEmpty()) {
+            List<Map<String, Object>> countRows = userService.listMaps(
+                    new QueryWrapper<User>()
+                            .select("invited_by, count(*) as cnt")
+                            .isNotNull("invited_by")
+                            .in("invited_by", pageUserIds)
+                            .groupBy("invited_by"));
+            for (Map<String, Object> row : countRows) {
+                Long inviterId = (Long) row.get("invited_by");
+                inviteCountMap.put(inviterId, ((Number) row.get("cnt")).intValue());
+            }
         }
 
         for (User u : list) {
@@ -80,8 +117,6 @@ public class AdminController {
             }
             u.setInviteCount(inviteCountMap.getOrDefault(u.getId(), 0));
         }
-
-        return R.ok(list);
     }
 
     @PutMapping("/users/{id}/toggle")

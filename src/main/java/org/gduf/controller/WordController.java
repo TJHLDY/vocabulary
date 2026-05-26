@@ -35,7 +35,15 @@ public class WordController {
     }
 
     @GetMapping("/all")
-    public R all(@RequestParam(defaultValue = "count") String sort) {
+    public R all(@RequestParam(defaultValue = "count") String sort,
+                 @RequestParam(required = false) Integer page,
+                 @RequestParam(required = false) Integer size,
+                 @RequestParam(required = false) String q) {
+        if (page != null || size != null || (q != null && !q.isBlank())) {
+            int safePage = page == null ? 1 : page;
+            int safeSize = size == null ? 80 : size;
+            return R.ok(wordService.myWordsPage(UserContext.getUserId(), sort, q, safePage, safeSize));
+        }
         List<Word> list = wordService.myWords(UserContext.getUserId(), sort);
         return R.ok(list);
     }

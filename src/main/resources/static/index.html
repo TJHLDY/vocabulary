@@ -1575,6 +1575,13 @@ let dictationMode = false;
 let hideChinese = false;
 let _wordbookData = [];
 let _wbSearchTimer = null;
+let _wordbookPage = 1;
+let _wordbookSize = 80;
+let _wordbookTotal = 0;
+let _wordbookHasMore = false;
+let _wordbookKeyword = '';
+let _wordbookLoading = false;
+let _wordbookRequestSeq = 0;
 let _mobileTooltipWord = null;
 let _mobileTooltipTimer = null;
 const stopwordsRe = /^(the|a|an|is|are|was|were|be|been|in|on|at|to|for|of|and|or|it|he|she|they|we|you|I|me|him|her|us|them|this|that|these|those|my|your|his|its|our|their|do|does|did|has|have|had|can|could|will|would|shall|should|may|might|must|not|no|yes|but|if|so|as|by|from|with|about|up|out|all|just|only|also|very|too|well|here|there|when|where|why|how|which|who|whom|what)$/;
@@ -2447,59 +2454,102 @@ function renderWordbookTbody(data) {
   }
 }
 
+function renderWordbookShell(keyword) {
+  document.getElementById('wordbookArea').innerHTML = `
+    <div class="wordbook-actions">
+      <div class="wordbook-actions-left">
+        <button class="wb-toggle-btn${dictationMode ? ' active' : ''}" onclick="toggleDictationMode()">✏️ 默写模式</button>
+        <button class="wb-toggle-btn${hideChinese ? ' active' : ''}" onclick="toggleHideChinese()">${hideChinese ? '👁 显示中文' : '🙈 隐藏中文'}</button>
+        <input class="wb-search" id="wbSearch" type="search" placeholder="搜索单词或释意" oninput="filterWordbook(this.value)" value="${escapeAttr(keyword || '')}" autocomplete="off">
+      </div>
+      <button class="btn-clear" onclick="clearWordbook()">清空全部</button>
+    </div>
+    <div class="table-wrap">
+      <table class="wordbook-table">
+        <thead><tr><th>单词</th><th>中文</th><th style="white-space:nowrap">查询次数</th><th style="white-space:nowrap">正确率</th><th></th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="wordbook-more" id="wordbookMore"></div>`;
+}
+
+function renderWordbookMore() {
+  const more = document.getElementById('wordbookMore');
+  if (!more) return;
+  const loaded = _wordbookData.length;
+  if (_wordbookTotal === 0) {
+    more.innerHTML = '<div class="wordbook-empty" style="padding:24px 0;"><p>没有匹配的单词</p></div>';
+  } else if (_wordbookHasMore) {
+    more.innerHTML = '<button class="btn-clear" onclick="loadMoreWordbook()" style="width:100%;margin-top:12px;">加载更多（' + loaded + '/' + _wordbookTotal + '）</button>';
+  } else {
+    more.innerHTML = '<div style="text-align:center;color:#bbb;font-size:0.8rem;padding:14px 0;">已加载 ' + loaded + ' / ' + _wordbookTotal + '</div>';
+  }
+}
+
 function filterWordbook(keyword) {
   clearTimeout(_wbSearchTimer);
   _wbSearchTimer = setTimeout(() => {
-    const kw = keyword.trim();
-    if (!kw) {
-      renderWordbookTbody(_wordbookData);
-      return;
-    }
-    const isChinese = /[一-龥]/.test(kw);
-    const filtered = _wordbookData.filter(w =>
-      isChinese ? (w.chinese || '').includes(kw) : w.word.toLowerCase().includes(kw.toLowerCase())
-    );
-    renderWordbookTbody(filtered);
+    _wordbookKeyword = keyword.trim();
+    loadWordbook(true);
   }, 300);
 }
 
-async function loadWordbook() {
+async function loadWordbook(reset = true) {
+  if (_wordbookLoading && !reset) return;
+  const requestSeq = ++_wordbookRequestSeq;
+  _wordbookLoading = true;
   const area = document.getElementById('wordbookArea');
   const searchEl = document.getElementById('wbSearch');
+  const keyword = searchEl ? searchEl.value.trim() : _wordbookKeyword;
+  if (reset) {
+    _wordbookPage = 1;
+    _wordbookData = [];
+  }
   try {
     const sortParam = dictationMode ? 'accuracy' : 'count';
-    const res = await fetch(`${API}/api/words/all?sort=${sortParam}`, {
+    if (reset) {
+      renderWordbookShell(keyword);
+      const tbody = document.querySelector('#wordbookArea tbody');
+      if (tbody) tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#bbb;padding:24px 0;">加载中...</td></tr>';
+    }
+    const params = new URLSearchParams({
+      sort: sortParam,
+      page: String(_wordbookPage),
+      size: String(_wordbookSize),
+      q: keyword
+    });
+    const res = await fetch(`${API}/api/words/all?${params.toString()}`, {
       headers: { 'Authorization': 'Bearer ' + token }
     });
     const data = await res.json();
-    if (data.code === 200 && data.data && data.data.length > 0) {
-      _wordbookData = data.data;
-      const keyword = searchEl ? searchEl.value : '';
-      const displayData = keyword.trim() ? [] : data.data;
-      area.innerHTML = `
-        <div class="wordbook-actions">
-          <div class="wordbook-actions-left">
-            <button class="wb-toggle-btn${dictationMode ? ' active' : ''}" onclick="toggleDictationMode()">✏️ 默写模式</button>
-            <button class="wb-toggle-btn${hideChinese ? ' active' : ''}" onclick="toggleHideChinese()">${hideChinese ? '👁 显示中文' : '🙈 隐藏中文'}</button>
-            <input class="wb-search" id="wbSearch" type="search" placeholder="搜索单词或释意" oninput="filterWordbook(this.value)" value="${escapeHtml(keyword)}" autocomplete="off">
-          </div>
-          <button class="btn-clear" onclick="clearWordbook()">清空全部</button>
-        </div>
-        <div class="table-wrap">
-          <table class="wordbook-table">
-            <thead><tr><th>单词</th><th>中文</th><th style="white-space:nowrap">查询次数</th><th style="white-space:nowrap">正确率</th><th></th></tr></thead>
-            <tbody></tbody>
-          </table>
-        </div>`;
-      renderWordbookTbody(data.data);
-      if (keyword.trim()) filterWordbook(keyword);
+    if (requestSeq !== _wordbookRequestSeq) return;
+    if (data.code === 200 && data.data) {
+      const pageData = data.data.items || data.data;
+      if (!Array.isArray(pageData) || pageData.length === 0 && _wordbookPage === 1 && !keyword) {
+        _wordbookData = [];
+        area.innerHTML = '<div class="wordbook-empty"><div class="icon">📖</div><p>还没有存入任何单词</p><p style="font-size:0.82rem;margin-top:4px;">去「查词」或「翻译句子」Tab 试试吧</p></div>';
+        return;
+      }
+      _wordbookData = reset ? pageData : _wordbookData.concat(pageData);
+      _wordbookTotal = data.data.total != null ? data.data.total : _wordbookData.length;
+      _wordbookHasMore = Boolean(data.data.hasMore);
+      renderWordbookTbody(_wordbookData);
+      renderWordbookMore();
     } else {
       _wordbookData = [];
       area.innerHTML = '<div class="wordbook-empty"><div class="icon">📖</div><p>还没有存入任何单词</p><p style="font-size:0.82rem;margin-top:4px;">去「查词」或「翻译句子」Tab 试试吧</p></div>';
     }
   } catch(e) {
     area.innerHTML = '<div class="error-msg">加载失败，请重试</div>';
+  } finally {
+    if (requestSeq === _wordbookRequestSeq) _wordbookLoading = false;
   }
+}
+
+function loadMoreWordbook() {
+  if (!_wordbookHasMore || _wordbookLoading) return;
+  _wordbookPage += 1;
+  loadWordbook(false);
 }
 
 async function deleteWord(word) {
@@ -2524,27 +2574,25 @@ async function clearWordbook() {
 function toggleDictationMode() {
   dictationMode = !dictationMode;
   const kw = document.getElementById('wbSearch');
-  const keyword = kw ? kw.value.trim() : '';
-  loadWordbook();
-  setTimeout(() => { if (keyword) filterWordbook(keyword); }, 50);
+  _wordbookKeyword = kw ? kw.value.trim() : '';
+  loadWordbook(true);
 }
 
 function toggleHideChinese() {
   hideChinese = !hideChinese;
-  const kw = document.getElementById('wbSearch');
-  const keyword = kw ? kw.value.trim() : '';
   const tbody = document.querySelector('#wordbookArea tbody');
   if (tbody && _wordbookData.length > 0) {
-    const displayed = keyword ? _wordbookData.filter(w => {
-      const isChinese = /[一-龥]/.test(keyword);
-      return isChinese ? (w.chinese || '').includes(keyword) : w.word.toLowerCase().includes(keyword.toLowerCase());
-    }) : _wordbookData;
-    renderWordbookTbody(displayed);
+    renderWordbookTbody(_wordbookData);
   }
 }
 
 // ---- Admin ----
 let _adminRefreshTimer = null;
+let _adminUserPage = 1;
+let _adminUserSize = 40;
+let _adminUserHasMore = false;
+let _adminUsers = [];
+let _adminUsersLoading = false;
 
 function publishBulletin() {
   const input = document.getElementById('bulletinInput');
@@ -2575,59 +2623,93 @@ document.getElementById('bulletinInput').addEventListener('input', function() {
 async function loadAdmin() {
   showSpinner(document.getElementById('userCardGrid'), '加载中...');
   showSpinner(document.getElementById('codeList'), '加载中...');
-  await Promise.all([loadUsers(), loadCodes()]);
+  await Promise.all([loadUsers(true), loadCodes()]);
   if (_adminRefreshTimer) clearInterval(_adminRefreshTimer);
-  _adminRefreshTimer = setInterval(loadUsers, 10000);
+  _adminRefreshTimer = setInterval(() => {
+    if (_adminUserPage === 1) loadUsers(true, true);
+  }, 30000);
 }
 
-async function loadUsers() {
+function renderUsers(users) {
+  document.getElementById('userCardGrid').innerHTML = users.map(u => {
+    let actionBtns = '';
+    if (u.role !== 'admin') {
+      actionBtns += '<button class="btn-clear" style="padding:4px 10px;font-size:0.75rem;" onclick="toggleUser(' + u.id + ')">' + (u.enabled ? '停用' : '启用') + '</button> ';
+      if (u.role === 'tester') {
+        actionBtns += '<button class="btn-clear" style="padding:4px 10px;font-size:0.75rem;border-color:#e6a060;color:#e67e22;" onclick="setRole(' + u.id + ',\'user\')">取消内测</button> ';
+        actionBtns += '<input type="number" class="code-count-input" id="codeCount' + u.id + '" value="10" min="1" max="100" title="添加邀请码数量"> ';
+        actionBtns += '<button class="btn-clear" style="padding:4px 10px;font-size:0.75rem;border-color:var(--accent);color:var(--accent);" onclick="addTesterCodes(' + u.id + ')">加码</button> ';
+      } else {
+        actionBtns += '<button class="btn-clear" style="padding:4px 10px;font-size:0.75rem;border-color:#e6a060;color:#e67e22;" onclick="setRole(' + u.id + ',\'tester\')">设为内测</button> ';
+      }
+      actionBtns += '<button class="btn-clear" style="padding:4px 10px;font-size:0.75rem;border-color:#e0c0c0;color:#c06060;" onclick="deleteUser(' + u.id + ')">删除</button>';
+    }
+    let roleBadge;
+    if (u.role === 'admin') roleBadge = '<span class="uc-badge role-admin">管理员</span>';
+    else if (u.role === 'tester') roleBadge = '<span class="uc-badge role-tester">内测人</span>';
+    else roleBadge = '<span class="uc-badge role-user">用户</span>';
+    const onlineBadge = u.online
+      ? '<span class="uc-badge online">● 在线</span>'
+      : '<span class="uc-badge offline">○ 离线</span>';
+    const statusBadge = u.enabled
+      ? '<span class="uc-badge active">正常</span>'
+      : '<span class="uc-badge disabled">已停用</span>';
+    return '<div class="user-card">' +
+      '<div class="uc-top">' +
+        '<div><div class="uc-name">' + escapeHtml(u.username || '-') + '</div><div class="uc-email">' + escapeHtml(u.email) + '</div></div>' +
+        '<div class="uc-badges">' + onlineBadge + statusBadge + '</div>' +
+      '</div>' +
+      '<div class="uc-meta">' +
+        '<div>角色：' + roleBadge + '</div>' +
+        '<div><span class="uc-meta-label">邀请人：</span>' + (u.invitedByUsername ? escapeHtml(u.invitedByUsername) : '-') + '</div>' +
+        '<div><span class="uc-meta-label">邀请人数：</span>' + (u.inviteCount || 0) + '</div>' +
+        '<div><span class="uc-meta-label">注册时间：</span>' + (u.createdAt ? new Date(u.createdAt).toLocaleDateString('zh-CN') : '-') + '</div>' +
+      '</div>' +
+      (actionBtns ? '<div class="uc-actions">' + actionBtns + '</div>' : '') +
+      '</div>';
+  }).join('') + '<div class="wordbook-more" id="adminUserMore" style="grid-column:1/-1;"></div>';
+
+  const more = document.getElementById('adminUserMore');
+  if (more) {
+    more.innerHTML = _adminUserHasMore
+      ? '<button class="btn-clear" onclick="loadMoreUsers()" style="width:100%;margin-top:12px;">加载更多用户</button>'
+      : '';
+  }
+}
+
+async function loadUsers(reset = true, silent = false) {
+  if (_adminUsersLoading) return;
+  _adminUsersLoading = true;
+  if (reset) _adminUserPage = 1;
   try {
-    const res = await fetch(API + '/api/admin/users', {
+    const params = new URLSearchParams({
+      page: String(_adminUserPage),
+      size: String(_adminUserSize)
+    });
+    const res = await fetch(API + '/api/admin/users?' + params.toString(), {
       headers: { 'Authorization': 'Bearer ' + token }
     });
     const data = await res.json();
     if (data.code !== 200) return;
-    const users = data.data;
-    const onlineCount = users.filter(u => u.online).length;
-    document.getElementById('userCount').textContent = '（在线 ' + onlineCount + ' / 共 ' + users.length + ' 人）';
-    document.getElementById('userCardGrid').innerHTML = users.map(u => {
-      let actionBtns = '';
-      if (u.role !== 'admin') {
-        actionBtns += '<button class="btn-clear" style="padding:4px 10px;font-size:0.75rem;" onclick="toggleUser(' + u.id + ')">' + (u.enabled ? '停用' : '启用') + '</button> ';
-        if (u.role === 'tester') {
-          actionBtns += '<button class="btn-clear" style="padding:4px 10px;font-size:0.75rem;border-color:#e6a060;color:#e67e22;" onclick="setRole(' + u.id + ',\'user\')">取消内测</button> ';
-          actionBtns += '<input type="number" class="code-count-input" id="codeCount' + u.id + '" value="10" min="1" max="100" title="添加邀请码数量"> ';
-          actionBtns += '<button class="btn-clear" style="padding:4px 10px;font-size:0.75rem;border-color:var(--accent);color:var(--accent);" onclick="addTesterCodes(' + u.id + ')">加码</button> ';
-        } else {
-          actionBtns += '<button class="btn-clear" style="padding:4px 10px;font-size:0.75rem;border-color:#e6a060;color:#e67e22;" onclick="setRole(' + u.id + ',\'tester\')">设为内测</button> ';
-        }
-        actionBtns += '<button class="btn-clear" style="padding:4px 10px;font-size:0.75rem;border-color:#e0c0c0;color:#c06060;" onclick="deleteUser(' + u.id + ')">删除</button>';
-      }
-	      let roleBadge;
-	      if (u.role === 'admin') roleBadge = '<span class="uc-badge role-admin">管理员</span>';
-	      else if (u.role === 'tester') roleBadge = '<span class="uc-badge role-tester">内测人</span>';
-	      else roleBadge = '<span class="uc-badge role-user">用户</span>';
-	      const onlineBadge = u.online
-	        ? '<span class="uc-badge online">● 在线</span>'
-	        : '<span class="uc-badge offline">○ 离线</span>';
-	      const statusBadge = u.enabled
-	        ? '<span class="uc-badge active">正常</span>'
-	        : '<span class="uc-badge disabled">已停用</span>';
-	      return '<div class="user-card">' +
-	        '<div class="uc-top">' +
-	          '<div><div class="uc-name">' + escapeHtml(u.username || '-') + '</div><div class="uc-email">' + escapeHtml(u.email) + '</div></div>' +
-	          '<div class="uc-badges">' + onlineBadge + statusBadge + '</div>' +
-	        '</div>' +
-	        '<div class="uc-meta">' +
-	          '<div>角色：' + roleBadge + '</div>' +
-	          '<div><span class="uc-meta-label">邀请人：</span>' + (u.invitedByUsername ? escapeHtml(u.invitedByUsername) : '-') + '</div>' +
-	          '<div><span class="uc-meta-label">邀请人数：</span>' + (u.inviteCount || 0) + '</div>' +
-	          '<div><span class="uc-meta-label">注册时间：</span>' + (u.createdAt ? new Date(u.createdAt).toLocaleDateString('zh-CN') : '-') + '</div>' +
-	        '</div>' +
-	        (actionBtns ? '<div class="uc-actions">' + actionBtns + '</div>' : '') +
-	        '</div>';
-	    }).join('');
-  } catch(e) {}
+    const payload = data.data;
+    const users = payload.items || payload;
+    _adminUsers = reset ? users : _adminUsers.concat(users);
+    _adminUserHasMore = Boolean(payload.hasMore);
+    const onlineCount = payload.onlineTotal != null ? payload.onlineTotal : _adminUsers.filter(u => u.online).length;
+    const total = payload.total != null ? payload.total : _adminUsers.length;
+    document.getElementById('userCount').textContent = '（在线 ' + onlineCount + ' / 共 ' + total + ' 人）';
+    renderUsers(_adminUsers);
+  } catch(e) {
+    if (!silent) showToast('用户列表加载失败');
+  } finally {
+    _adminUsersLoading = false;
+  }
+}
+
+function loadMoreUsers() {
+  if (!_adminUserHasMore || _adminUsersLoading) return;
+  _adminUserPage += 1;
+  loadUsers(false);
 }
 
 async function toggleUser(id) {

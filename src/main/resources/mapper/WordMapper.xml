@@ -20,6 +20,37 @@
         </choose>
     </select>
 
+    <sql id="wordSearchWhere">
+        user_id = #{userId}
+        <if test="keyword != null and keyword != ''">
+            AND (
+                word LIKE CONCAT('%', #{keyword}, '%')
+                OR chinese LIKE CONCAT('%', #{keyword}, '%')
+            )
+        </if>
+    </sql>
+
+    <select id="selectPageByUserId" resultType="org.gduf.entity.Word">
+        SELECT id, user_id, word, chinese, count, dict_correct, dict_total, created_at
+        FROM word
+        WHERE <include refid="wordSearchWhere"/>
+        <choose>
+            <when test="sort == 'accuracy'">
+                ORDER BY COALESCE(dict_correct * 1.0 / NULLIF(dict_total, 0), 1) ASC, count DESC, id DESC
+            </when>
+            <otherwise>
+                ORDER BY count DESC, id DESC
+            </otherwise>
+        </choose>
+        LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <select id="countByUserId" resultType="int">
+        SELECT COUNT(*)
+        FROM word
+        WHERE <include refid="wordSearchWhere"/>
+    </select>
+
     <update id="recordDictation">
         UPDATE word SET dict_total = dict_total + 1
         <if test="correct">, dict_correct = dict_correct + 1</if>
