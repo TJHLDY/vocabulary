@@ -51,6 +51,7 @@
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html { width: 100%; overflow-x: hidden; }
 
   button, .sword, .rel-tag, .tab, input, .top-list li, .btn-logout, .speaker-btn, .collapse-toggle-btn, .btn-delete-row, .wb-toggle-btn, .btn-clear, .hist-tag {
     touch-action: manipulation;
@@ -730,6 +731,12 @@
     color: #aaa;
     font-size: 0.78rem;
   }
+  .top-list .top-status {
+    cursor: default;
+    color: #999;
+    border-style: dashed;
+  }
+  .top-list .top-status:hover { background: var(--paper); }
 
   /* ---- My Words Tab ---- */
   .wordbook-empty {
@@ -903,8 +910,8 @@
       height: 52px;
       min-height: calc(52px + env(safe-area-inset-top));
     }
-    .header .brand { font-size: 1rem; }
-    .header .right { gap: 4px; }
+    .header .brand { font-size: 1rem; min-width: 0; }
+    .header .right { gap: 4px; flex: 0 1 auto; min-width: 0; }
     .btn-feedback, .btn-logout { font-size: 0.72rem; padding: 5px 8px; min-height: 36px; }
     .header .btn-clear { font-size: 0.72rem; padding: 5px 8px; min-height: 36px; }
     .header .user-badge { font-size: 0.72rem; padding: 5px 10px; max-width: 72px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -916,17 +923,36 @@
       z-index: 99;
       background: var(--cream);
       margin-top: 0;
-      padding: 8px 12px 4px;
+      margin-left: max(12px, env(safe-area-inset-left));
+      margin-right: max(12px, env(safe-area-inset-right));
+      padding: 8px 0 4px;
+      width: calc(100vw - 24px);
+      max-width: calc(100vw - 24px);
     }
-    .tab-nav button { font-size: 0.85rem; padding: 14px 0; min-height: 44px; }
+    .tab-nav button {
+      font-size: 0.78rem;
+      padding: 14px 0;
+      min-height: 44px;
+      min-width: 0;
+      width: 0;
+      flex: 1 1 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
 
     .main {
-      padding: 18px max(12px, env(safe-area-inset-right)) max(60px, calc(60px + env(safe-area-inset-bottom))) max(12px, env(safe-area-inset-left));
+      width: calc(100vw - 24px);
+      max-width: calc(100vw - 24px);
+      margin-left: max(12px, env(safe-area-inset-left));
+      margin-right: max(12px, env(safe-area-inset-right));
+      padding: 18px 0 max(60px, calc(60px + env(safe-area-inset-bottom)));
+      min-width: 0;
     }
 
     /* search */
-    .search-box { flex-direction: column; gap: 10px; }
-    .search-box textarea { font-size: 16px; padding: 14px 16px; }
+    .search-box { flex-direction: column; gap: 10px; max-width: 100%; min-width: 0; }
+    .search-box textarea { font-size: 16px; padding: 14px 16px; width: 100%; min-width: 0; }
     .search-box button, .sentence-input button { width: 100%; padding: 14px; font-size: 1rem; }
     .sentence-input textarea { font-size: 16px; min-height: 70px; }
     .sentence-input button { padding: 14px; font-size: 1rem; }
@@ -1175,7 +1201,26 @@
 </head>
 <body>
 
-<script>if(!localStorage.getItem('token'))location.replace('login.html');</script>
+<script>
+function decodeJwtPayload(rawToken) {
+  try {
+    const part = rawToken && rawToken.split('.')[1];
+    if (!part) return null;
+    const normalized = part.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = normalized + '='.repeat((4 - normalized.length % 4) % 4);
+    return JSON.parse(decodeURIComponent(atob(padded).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')));
+  } catch(e) {
+    return null;
+  }
+}
+(function() {
+  const payload = decodeJwtPayload(localStorage.getItem('token'));
+  if (!payload || (payload.exp && payload.exp * 1000 <= Date.now())) {
+    localStorage.removeItem('token');
+    location.replace('login.html');
+  }
+})();
+</script>
 
 <div class="header">
   <div class="brand">Vocab<span>Note</span></div>
@@ -1469,9 +1514,8 @@ async function api(url, options) {
 
 async function fetchUser() {
   try {
-    const base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
-    const payload = JSON.parse(decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')));
-    console.log('JWT payload:', payload);
+    const payload = decodeJwtPayload(token);
+    if (!payload) throw new Error('Invalid token');
     userRole = payload.role || 'user';
     updateHeaderAvatar(payload.username || '我的', null);
     if (userRole === 'admin') {
@@ -1894,20 +1938,24 @@ function searchWord(word) {
 
 // ---- Top Words ----
 async function loadTopWords() {
+  const list = document.getElementById('topList');
   try {
-    showSpinner(document.getElementById('topList'), '加载中...');
+    showSpinner(list, '加载中...');
     const res = await fetch(`${API}/api/words/all`, {
       headers: { 'Authorization': 'Bearer ' + token }
     });
     const data = await res.json();
     if (data.code === 200 && data.data && data.data.length > 0) {
       const top10 = data.data.slice(0, 10);
-      const list = document.getElementById('topList');
       list.innerHTML = top10.map((w, i) =>
         `<li onclick="searchWord('${escapeHtml(w.word)}')"><span class="rank-num">${i + 1}</span> ${escapeHtml(w.word)} <span class="rank-count">${w.count}次</span></li>`
       ).join('');
+    } else {
+      list.innerHTML = '<li class="top-status">还没有查询记录</li>';
     }
-  } catch(e) {}
+  } catch(e) {
+    list.innerHTML = '<li class="top-status">暂时无法加载词表</li>';
+  }
 }
 
 // =============================================
