@@ -25,4 +25,10 @@ public interface QuizService {
 
     /** 排除已答单词后重新生成, mode: cn2en 或 en2cn */
     List<Map<String, Object>> regenerateQuestions(Long userId, String mode, List<Long> excludeWordIds);
+
+    /** 排行榜: scope=day|week, 返回 {list: [...], myRank: int|null} */
+    Map<String, Object> getLeaderboard(Long viewerId, String scope);
+
+    /** 点赞, 返回 {liked: bool, msg: str} */
+    Map<String, Object> likeUser(Long fromUserId, Long toUserId);
 }

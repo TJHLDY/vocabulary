@@ -1146,6 +1146,81 @@
     .qr-word { font-size: 0.95rem; }
     .quiz-record-item { padding: 12px 12px; }
   }
+  /* ---- Leaderboard ---- */
+  .leaderboard-panel {
+    width: 280px; min-width: 260px; flex-shrink: 0;
+    background: var(--paper); border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-sm); display: flex; flex-direction: column;
+    overflow: hidden; max-height: 320px;
+  }
+  .leaderboard-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 16px; border-bottom: 1px solid var(--border);
+  }
+  .leaderboard-header h3 {
+    font-size: 0.85rem; color: var(--ink-light); font-weight: 500; margin: 0;
+  }
+  .leaderboard-tabs { display: flex; gap: 4px; }
+  .leaderboard-tabs button {
+    padding: 4px 10px; font-size: 0.75rem; font-family: inherit;
+    border: 1px solid var(--border); border-radius: 12px;
+    background: none; cursor: pointer; color: #999; transition: all 0.15s;
+  }
+  .leaderboard-tabs button.active {
+    background: var(--accent); color: #fff; border-color: var(--accent);
+  }
+  .leaderboard-list { flex: 1; overflow-y: auto; }
+  .lb-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 16px; border-bottom: 1px solid #f5f3ef;
+    transition: background 0.15s;
+  }
+  .lb-row:hover { background: var(--accent-light); }
+  .lb-rank {
+    width: 24px; text-align: center; font-weight: 700; font-size: 0.85rem;
+    color: var(--ink-light); flex-shrink: 0;
+  }
+  .lb-rank.r1 { color: #f0c060; }
+  .lb-rank.r2 { color: #b0b0b0; }
+  .lb-rank.r3 { color: #c9a96e; }
+  .lb-avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.8rem; font-weight: 600; color: #fff;
+    flex-shrink: 0; overflow: hidden;
+  }
+  .lb-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .lb-info { flex: 1; min-width: 0; }
+  .lb-name {
+    font-size: 0.85rem; font-weight: 500; color: var(--ink);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .lb-stats { font-size: 0.72rem; color: #999; }
+  .lb-like-btn {
+    background: none; border: 1px solid var(--border); border-radius: 14px;
+    padding: 4px 10px; font-size: 0.75rem; font-family: inherit;
+    cursor: pointer; color: #999; flex-shrink: 0;
+    transition: all 0.15s; white-space: nowrap;
+  }
+  .lb-like-btn:hover:not(:disabled) { border-color: #e07068; color: #e07068; }
+  .lb-like-btn:disabled { opacity: 0.4; cursor: default; }
+  .lb-like-btn.liked { border-color: #e07068; color: #e07068; background: #fef0ef; }
+  .lb-mine { background: var(--accent-light); }
+  .lb-empty, .lb-error, .lb-loading {
+    color: #ccc; text-align: center; padding: 24px 0; font-size: 0.82rem;
+  }
+  .lb-error { color: #e07068; }
+  .leaderboard-mobile-btn {
+    display: none; background: var(--gold-light);
+    border: 1px solid var(--warm-border); padding: 8px 16px;
+    border-radius: 10px; font-size: 0.85rem; font-family: inherit;
+    cursor: pointer; color: var(--warm); transition: all 0.15s;
+  }
+  .leaderboard-mobile-btn:hover { background: #e5ddd0; }
+  @media (max-width: 640px) {
+    .leaderboard-panel { display: none; }
+    .leaderboard-mobile-btn { display: inline-block; }
+  }
   /* ---- Bulletin ---- */
   /* ---- Bulletin ---- */
   .bulletin-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 9999; display: flex; align-items: center; justify-content: center; animation: fadeIn 0.25s; }
@@ -1280,7 +1355,20 @@ function decodeJwtPayload(rawToken) {
           <h3>本周概览</h3>
           <div class="quiz-chart" id="quizChart"></div>
         </div>
+        <div class="leaderboard-panel" id="leaderboardPanel">
+          <div class="leaderboard-header">
+            <h3>排行榜</h3>
+            <div class="leaderboard-tabs" id="leaderboardTabs">
+              <button class="active" data-scope="day" onclick="switchLeaderboard('day', this)">日榜</button>
+              <button data-scope="week" onclick="switchLeaderboard('week', this)">周榜</button>
+            </div>
+          </div>
+          <div class="leaderboard-list" id="leaderboardList">
+            <div class="lb-loading">加载中...</div>
+          </div>
+        </div>
       </div>
+      <button class="leaderboard-mobile-btn" onclick="openLeaderboardModal()" style="margin-bottom:12px;">🏆 排行榜</button>
       <div class="quiz-records" id="quizRecords">
         <div class="quiz-records-tabs">
           <button id="qtabWrong" class="active" onclick="switchQuizTab('wrong')">错题 <span class="count" id="wrongCount"></span></button>
@@ -1327,6 +1415,21 @@ function decodeJwtPayload(rawToken) {
         <div class="modal-actions" style="justify-content:center;">
           <button class="btn-clear" onclick="closeExitQuizModal()">继续刷题</button>
           <button class="btn-submit" style="background:#c06060;" onclick="confirmExitQuiz()">确认退出</button>
+        </div>
+      </div>
+    </div>
+    <!-- 排行榜移动端弹窗 -->
+    <div class="modal-overlay" id="leaderboardModalOverlay" onclick="closeLeaderboardModal(event)" style="display:none;">
+      <div class="modal-box" id="leaderboardModal" onclick="event.stopPropagation()" style="max-width:420px;max-height:80vh;display:flex;flex-direction:column;">
+        <div class="leaderboard-header" style="flex-shrink:0;">
+          <h3>排行榜</h3>
+          <div class="leaderboard-tabs" id="leaderboardModalTabs">
+            <button class="active" data-scope="day" onclick="switchLeaderboard('day', this)">日榜</button>
+            <button data-scope="week" onclick="switchLeaderboard('week', this)">周榜</button>
+          </div>
+        </div>
+        <div class="leaderboard-list" id="leaderboardModalList" style="flex:1;overflow-y:auto;">
+          <div class="lb-loading">加载中...</div>
         </div>
       </div>
     </div>
@@ -2857,6 +2960,22 @@ function escapeHtml(s) {
   return div.innerHTML;
 }
 
+function escapeAttr(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+function safeImageUrl(url) {
+  var value = String(url || '').trim();
+  if (!value) return '';
+  if (/^(https?:)?\/\//i.test(value) || value.charAt(0) === '/') return value;
+  return '';
+}
+
 // ==================== 刷六级 ====================
 let quizQuestions = [];
 let quizAnswers = [];          // { chosen, correct, correctWord, wordId }
@@ -2929,6 +3048,7 @@ function loadQuizPage() {
   detachQuizSwipe();
   loadQuizProgress();
   loadQuizChart();
+  loadLeaderboard();
 }
 
 async function loadQuizProgress() {
@@ -3340,6 +3460,7 @@ function confirmExitQuiz() {
   document.getElementById('confettiCanvas').classList.remove('active');
   loadQuizProgress();
   loadQuizChart();
+  loadLeaderboard();
 }
 
 function renderQuizQuestion() {
@@ -3643,6 +3764,7 @@ function finishQuiz() {
     }
   });
   loadQuizTabContent();
+  loadLeaderboard();
 }
 
 function showResultModal(allMastered) {
@@ -3732,6 +3854,126 @@ function startConfetti() {
     requestAnimationFrame(draw);
   }
   draw();
+}
+
+// ---- leaderboard ----
+var _leaderboardScope = 'day';
+
+function loadLeaderboard(scope) {
+  if (scope) _leaderboardScope = scope;
+  var panelList = document.getElementById('leaderboardList');
+  var modalList = document.getElementById('leaderboardModalList');
+  if (panelList) panelList.innerHTML = '<div class="lb-loading">加载中...</div>';
+  if (modalList) modalList.innerHTML = '<div class="lb-loading">加载中...</div>';
+
+  fetch(API + '/api/quiz/leaderboard?scope=' + encodeURIComponent(_leaderboardScope), {
+    headers: { 'Authorization': 'Bearer ' + token }
+  }).then(function(r) { return r.json(); }).then(function(data) {
+    if (data.code !== 200) {
+      var errHtml = '<div class="lb-error">加载失败</div>';
+      if (panelList) panelList.innerHTML = errHtml;
+      if (modalList) modalList.innerHTML = errHtml;
+      return;
+    }
+    var lb = data.data;
+    renderLeaderboard(lb.list || [], lb.myRank, 'leaderboardList');
+    renderLeaderboard(lb.list || [], lb.myRank, 'leaderboardModalList');
+  }).catch(function() {
+    var errHtml = '<div class="lb-error">加载失败</div>';
+    if (panelList) panelList.innerHTML = errHtml;
+    if (modalList) modalList.innerHTML = errHtml;
+  });
+}
+
+function renderLeaderboard(list, myRank, containerId) {
+  var el = document.getElementById(containerId);
+  if (!el) return;
+  if (!list || list.length === 0) {
+    el.innerHTML = '<div class="lb-empty">暂无排行数据</div>';
+    return;
+  }
+  var myUid = null;
+  try {
+    var payload = decodeJwtPayload(token);
+    myUid = payload.userId;
+  } catch(e) {}
+
+  el.innerHTML = list.map(function(row) {
+    var rank = row.rank;
+    var rankCls = rank === 1 ? 'r1' : rank === 2 ? 'r2' : rank === 3 ? 'r3' : '';
+    var rawName = String(row.username || '');
+    var name = escapeHtml(rawName);
+    var titleName = escapeAttr(rawName);
+    var avatarUrl = safeImageUrl(row.avatarUrl);
+    var initial = escapeHtml(getInitial(rawName));
+    var color = getAvatarColor(rawName);
+    var avatarHtml;
+    if (avatarUrl) {
+      avatarHtml = '<img src="' + escapeAttr(avatarUrl) + '" alt="">';
+    } else {
+      avatarHtml = initial;
+    }
+    var accuracy = Number(row.accuracy || 0).toFixed(1).replace(/\.0$/, '');
+    var likes = Number(row.likes || 0);
+    var likedByMe = row.likedByMe;
+    var isMe = myUid != null && row.userId == myUid;
+    var likeDisabled = isMe || likedByMe ? ' disabled' : '';
+    var likeCls = likedByMe ? ' liked' : '';
+    var likeText = (likedByMe ? '已赞 ' : '赞 ') + likes;
+    if (isMe) likeText = '赞 ' + likes;
+
+    return '<div class="lb-row' + (isMe ? ' lb-mine' : '') + '">' +
+      '<span class="lb-rank ' + rankCls + '">' + rank + '</span>' +
+      '<div class="lb-avatar" style="background:' + color + '">' + avatarHtml + '</div>' +
+      '<div class="lb-info">' +
+        '<div class="lb-name" title="' + titleName + '">' + name + '</div>' +
+        '<div class="lb-stats">' + Number(row.correct || 0) + '/' + Number(row.total || 0) + '  ' + accuracy + '%</div>' +
+      '</div>' +
+      '<button class="lb-like-btn' + likeCls + '"' + likeDisabled +
+        ' onclick="likeLeaderboardUser(' + Number(row.userId) + ', this)">' + likeText + '</button>' +
+    '</div>';
+  }).join('');
+}
+
+function switchLeaderboard(scope, btn) {
+  _leaderboardScope = scope;
+  var tabs = btn.parentElement;
+  tabs.querySelectorAll('button').forEach(function(b) { b.classList.remove('active'); });
+  btn.classList.add('active');
+  // sync tabs between panel and modal
+  document.querySelectorAll('#leaderboardTabs button, #leaderboardModalTabs button').forEach(function(b) {
+    b.classList.toggle('active', b.dataset.scope === scope);
+  });
+  loadLeaderboard(scope);
+}
+
+function likeLeaderboardUser(targetUserId, btn) {
+  fetch(API + '/api/quiz/leaderboard/like', {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ targetUserId: targetUserId })
+  }).then(function(r) { return r.json(); }).then(function(data) {
+    if (data.code === 200) {
+      loadLeaderboard();
+    } else {
+      showToast(data.msg || '点赞失败');
+    }
+  }).catch(function() {
+    showToast('网络错误');
+  });
+}
+
+function openLeaderboardModal() {
+  document.getElementById('leaderboardModalOverlay').style.display = 'flex';
+  if (!document.getElementById('leaderboardModalList').textContent.trim() ||
+      document.getElementById('leaderboardModalList').querySelector('.lb-loading')) {
+    loadLeaderboard();
+  }
+}
+
+function closeLeaderboardModal(e) {
+  if (e && e.target !== document.getElementById('leaderboardModalOverlay')) return;
+  document.getElementById('leaderboardModalOverlay').style.display = 'none';
 }
 
 // ---- profile sidebar & avatar ----

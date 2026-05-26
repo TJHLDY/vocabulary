@@ -21,4 +21,6 @@ public class QuizDailyStats implements Serializable {
     private Date quizDate;
     private Integer totalQuestions;
     private Integer correctAnswers;
+    @TableField("last_quiz_at")
+    private Date lastQuizAt;
 }

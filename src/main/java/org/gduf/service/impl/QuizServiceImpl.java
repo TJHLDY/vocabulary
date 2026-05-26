@@ -5,7 +5,9 @@ import org.gduf.entity.QuizDailyStats;
 import org.gduf.entity.QuizProgress;
 import org.gduf.mapper.Cet6WordMapper;
 import org.gduf.mapper.QuizDailyStatsMapper;
+import org.gduf.mapper.QuizLeaderboardLikeMapper;
 import org.gduf.mapper.QuizProgressMapper;
+import org.gduf.mapper.UserMapper;
 import org.gduf.service.QuizService;
 import org.springframework.stereotype.Service;
 
@@ -19,14 +21,20 @@ public class QuizServiceImpl implements QuizService {
     private final Cet6WordMapper cet6WordMapper;
     private final QuizProgressMapper quizProgressMapper;
     private final QuizDailyStatsMapper quizDailyStatsMapper;
+    private final QuizLeaderboardLikeMapper quizLeaderboardLikeMapper;
+    private final UserMapper userMapper;
     private static final SimpleDateFormat SDF = new SimpleDateFormat("yyyy-MM-dd");
 
     public QuizServiceImpl(Cet6WordMapper cet6WordMapper,
                            QuizProgressMapper quizProgressMapper,
-                           QuizDailyStatsMapper quizDailyStatsMapper) {
+                           QuizDailyStatsMapper quizDailyStatsMapper,
+                           QuizLeaderboardLikeMapper quizLeaderboardLikeMapper,
+                           UserMapper userMapper) {
         this.cet6WordMapper = cet6WordMapper;
         this.quizProgressMapper = quizProgressMapper;
         this.quizDailyStatsMapper = quizDailyStatsMapper;
+        this.quizLeaderboardLikeMapper = quizLeaderboardLikeMapper;
+        this.userMapper = userMapper;
     }
 
     @Override
@@ -231,6 +239,70 @@ public class QuizServiceImpl implements QuizService {
     @Override
     public boolean checkAllMastered(Long userId) {
         return quizProgressMapper.allMastered(userId);
+    }
+
+    @Override
+    public Map<String, Object> getLeaderboard(Long viewerId, String scope) {
+        List<Map<String, Object>> rows = quizDailyStatsMapper.selectLeaderboard(viewerId, scope);
+
+        List<Map<String, Object>> list = new ArrayList<>();
+        Long myRank = null;
+
+        for (int i = 0; i < rows.size(); i++) {
+            Map<String, Object> row = rows.get(i);
+            long rank = i + 1L;
+            Map<String, Object> item = new HashMap<>();
+            Long uid = ((Number) row.get("user_id")).longValue();
+            item.put("userId", uid);
+            item.put("username", row.get("username"));
+            item.put("avatarUrl", row.get("avatar_url"));
+            item.put("correct", ((Number) row.get("correct")).intValue());
+            item.put("total", ((Number) row.get("total")).intValue());
+            item.put("accuracy", row.get("accuracy"));
+            item.put("likes", ((Number) row.get("likes")).intValue());
+            item.put("likedByMe", ((Number) row.get("liked_by_me")).intValue() > 0);
+            item.put("rank", rank);
+
+            if (uid.equals(viewerId)) {
+                myRank = rank;
+            }
+            if (rank <= 10 || uid.equals(viewerId)) {
+                list.add(item);
+            }
+        }
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("list", list);
+        result.put("myRank", myRank);
+        return result;
+    }
+
+    @Override
+    public Map<String, Object> likeUser(Long fromUserId, Long toUserId) {
+        Map<String, Object> result = new HashMap<>();
+
+        if (fromUserId == null || toUserId == null || toUserId <= 0) {
+            result.put("liked", false);
+            result.put("msg", "点赞用户无效");
+            return result;
+        }
+
+        if (fromUserId.equals(toUserId)) {
+            result.put("liked", false);
+            result.put("msg", "不能给自己点赞");
+            return result;
+        }
+
+        if (userMapper.selectById(toUserId) == null) {
+            result.put("liked", false);
+            result.put("msg", "用户不存在");
+            return result;
+        }
+
+        int rows = quizLeaderboardLikeMapper.insertIgnore(fromUserId, toUserId);
+        result.put("liked", true);
+        result.put("msg", rows > 0 ? "点赞成功" : "今日已点赞");
+        return result;
     }
 
     private String formatPos(String pos) {

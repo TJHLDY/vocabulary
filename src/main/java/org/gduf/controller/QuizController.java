@@ -79,4 +79,32 @@ public class QuizController {
         result.put("allMastered", allMastered);
         return R.ok(result);
     }
+
+    /** 排行榜 */
+    @GetMapping("/leaderboard")
+    public R leaderboard(@RequestParam(defaultValue = "day") String scope) {
+        return R.ok(quizService.getLeaderboard(UserContext.getUserId(), scope));
+    }
+
+    /** 点赞 */
+    @PostMapping("/leaderboard/like")
+    public R like(@RequestBody Map<String, Object> body) {
+        Object target = body.get("targetUserId");
+        if (target == null) {
+            return R.fail("缺少点赞用户");
+        }
+
+        Long targetUserId;
+        try {
+            targetUserId = Long.valueOf(target.toString());
+        } catch (NumberFormatException e) {
+            return R.fail("点赞用户无效");
+        }
+
+        Map<String, Object> result = quizService.likeUser(UserContext.getUserId(), targetUserId);
+        if (Boolean.FALSE.equals(result.get("liked"))) {
+            return R.fail((String) result.get("msg"));
+        }
+        return R.ok(result);
+    }
 }

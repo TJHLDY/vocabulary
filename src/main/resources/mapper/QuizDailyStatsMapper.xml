@@ -4,11 +4,12 @@
 <mapper namespace="org.gduf.mapper.QuizDailyStatsMapper">
 
     <insert id="upsert">
-        INSERT INTO quiz_daily_stats(user_id, quiz_date, total_questions, correct_answers)
-        VALUES(#{userId}, CURDATE(), 1, #{correct} = true)
+        INSERT INTO quiz_daily_stats(user_id, quiz_date, total_questions, correct_answers, last_quiz_at)
+        VALUES(#{userId}, CURDATE(), 1, #{correct} = true, NOW())
         ON DUPLICATE KEY UPDATE
             total_questions = total_questions + 1,
-            correct_answers = correct_answers + (#{correct} = true)
+            correct_answers = correct_answers + (#{correct} = true),
+            last_quiz_at = NOW()
     </insert>
 
     <select id="selectWeekly" resultType="org.gduf.entity.QuizDailyStats">
@@ -20,5 +21,73 @@
     <delete id="deleteAllByUser">
         DELETE FROM quiz_daily_stats WHERE user_id = #{userId}
     </delete>
+
+    <select id="selectLeaderboard" resultType="java.util.HashMap">
+        <choose>
+            <when test="scope == 'week'">
+                <![CDATA[
+                SELECT
+                    agg.user_id,
+                    u.username,
+                    u.avatar_url,
+                    agg.correct,
+                    agg.total,
+                    CASE WHEN agg.total > 0
+                         THEN ROUND(agg.correct * 100.0 / agg.total, 1)
+                         ELSE 0 END AS accuracy,
+                    agg.last_quiz_at,
+                    (SELECT COUNT(*) FROM quiz_leaderboard_like l
+                     WHERE l.to_user_id = agg.user_id AND l.like_date = CURDATE()) AS likes,
+                    (SELECT COUNT(*) FROM quiz_leaderboard_like l2
+                     WHERE l2.to_user_id = agg.user_id
+                       AND l2.from_user_id = #{viewerId}
+                       AND l2.like_date = CURDATE()) AS liked_by_me
+                FROM (
+                    SELECT
+                        user_id,
+                        SUM(correct_answers) AS correct,
+                        SUM(total_questions) AS total,
+                        MAX(COALESCE(last_quiz_at, TIMESTAMP(quiz_date))) AS last_quiz_at
+                    FROM quiz_daily_stats
+                    WHERE quiz_date >= DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY)
+                      AND quiz_date <= CURDATE()
+                    GROUP BY user_id
+                ) agg
+                JOIN user u ON u.id = agg.user_id
+                ORDER BY agg.correct DESC,
+                         accuracy DESC,
+                         agg.last_quiz_at ASC,
+                         agg.user_id ASC
+                ]]>
+            </when>
+            <otherwise>
+                <![CDATA[
+                SELECT
+                    s.user_id,
+                    u.username,
+                    u.avatar_url,
+                    s.correct_answers AS correct,
+                    s.total_questions AS total,
+                    CASE WHEN s.total_questions > 0
+                         THEN ROUND(s.correct_answers * 100.0 / s.total_questions, 1)
+                         ELSE 0 END AS accuracy,
+                    COALESCE(s.last_quiz_at, TIMESTAMP(s.quiz_date)) AS last_quiz_at,
+                    (SELECT COUNT(*) FROM quiz_leaderboard_like l
+                     WHERE l.to_user_id = s.user_id AND l.like_date = CURDATE()) AS likes,
+                    (SELECT COUNT(*) FROM quiz_leaderboard_like l2
+                     WHERE l2.to_user_id = s.user_id
+                       AND l2.from_user_id = #{viewerId}
+                       AND l2.like_date = CURDATE()) AS liked_by_me
+                FROM quiz_daily_stats s
+                JOIN user u ON u.id = s.user_id
+                WHERE s.quiz_date = CURDATE()
+                ORDER BY s.correct_answers DESC,
+                         accuracy DESC,
+                         last_quiz_at ASC,
+                         s.user_id ASC
+                ]]>
+            </otherwise>
+        </choose>
+    </select>
 
 </mapper>
