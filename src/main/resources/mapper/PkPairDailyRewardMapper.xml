@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.gduf.mapper.PkPairDailyRewardMapper">
+
+    <select id="selectTodayCount" resultType="int">
+        SELECT COALESCE(MAX(rewarded_matches), 0)
+        FROM pk_pair_daily_reward
+        WHERE user_low_id = #{userLowId}
+          AND user_high_id = #{userHighId}
+          AND reward_date = CURDATE()
+    </select>
+
+    <insert id="incrementToday">
+        INSERT INTO pk_pair_daily_reward(user_low_id, user_high_id, reward_date, rewarded_matches)
+        VALUES(#{userLowId}, #{userHighId}, CURDATE(), 1)
+        ON DUPLICATE KEY UPDATE rewarded_matches = rewarded_matches + 1
+    </insert>
+
+</mapper>

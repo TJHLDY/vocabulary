@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.gduf.mapper.PkUserSettingMapper">
+
+    <select id="selectByUserId" resultType="org.gduf.entity.PkUserSetting">
+        SELECT * FROM pk_user_setting WHERE user_id = #{userId}
+    </select>
+
+    <insert id="upsertInvisible">
+        INSERT INTO pk_user_setting(user_id, invisible, updated_at)
+        VALUES(#{userId}, #{invisible}, NOW())
+        ON DUPLICATE KEY UPDATE
+            invisible = #{invisible},
+            updated_at = NOW()
+    </insert>
+
+    <insert id="upsertDeclarations">
+        INSERT INTO pk_user_setting(
+            user_id,
+            first_win_declaration,
+            revenge_declaration,
+            sweep_declaration,
+            final_win_declaration,
+            updated_at
+        )
+        VALUES(
+            #{userId},
+            #{firstWinDeclaration},
+            #{revengeDeclaration},
+            #{sweepDeclaration},
+            #{finalWinDeclaration},
+            NOW()
+        )
+        ON DUPLICATE KEY UPDATE
+            first_win_declaration = #{firstWinDeclaration},
+            revenge_declaration = #{revengeDeclaration},
+            sweep_declaration = #{sweepDeclaration},
+            final_win_declaration = #{finalWinDeclaration},
+            updated_at = NOW()
+    </insert>
+
+</mapper>

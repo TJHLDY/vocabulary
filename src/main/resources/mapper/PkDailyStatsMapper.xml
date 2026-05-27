@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.gduf.mapper.PkDailyStatsMapper">
+
+    <insert id="upsert">
+        INSERT INTO pk_daily_stats(user_id, stat_date, base_points_gained, streak_points_gained,
+            net_points, wins, losses, draws, matches, highest_streak)
+        VALUES(#{userId}, CURDATE(), #{basePoints}, #{streakPoints},
+            #{netPoints}, #{isWin}, #{isLoss}, #{isDraw}, 1, #{highestStreak})
+        ON DUPLICATE KEY UPDATE
+            base_points_gained = base_points_gained + #{basePoints},
+            streak_points_gained = streak_points_gained + #{streakPoints},
+            net_points = net_points + #{netPoints},
+            wins = wins + (#{isWin} = true),
+            losses = losses + (#{isLoss} = true),
+            draws = draws + (#{isDraw} = true),
+            matches = matches + 1,
+            highest_streak = GREATEST(highest_streak, #{highestStreak})
+    </insert>
+
+    <select id="selectTodayByUserId" resultType="org.gduf.entity.PkDailyStats">
+        SELECT * FROM pk_daily_stats
+        WHERE user_id = #{userId} AND stat_date = CURDATE()
+    </select>
+
+</mapper>

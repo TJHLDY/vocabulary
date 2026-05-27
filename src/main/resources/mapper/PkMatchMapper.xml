@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.gduf.mapper.PkMatchMapper">
+
+    <update id="updateSettled">
+        UPDATE pk_match
+        SET status = #{status},
+            winner_user_id = #{winnerUserId},
+            questions_completed = #{questionsCompleted},
+            player_a_score = #{playerAScore},
+            player_b_score = #{playerBScore},
+            player_a_points_delta = #{playerAPointsDelta},
+            player_b_points_delta = #{playerBPointsDelta},
+            finished_at = NOW()
+        WHERE id = #{id} AND status = 'playing'
+    </update>
+
+    <select id="selectRecentMatches" resultType="java.util.Map">
+        SELECT
+            m.id AS matchId,
+            m.player_a_id AS playerAId,
+            ua.username AS playerAUsername,
+            m.player_b_id AS playerBId,
+            ub.username AS playerBUsername,
+            m.winner_user_id AS winnerUserId,
+            m.status AS status,
+            m.questions_completed AS questionsCompleted,
+            m.player_a_score AS playerAScore,
+            m.player_b_score AS playerBScore,
+            m.player_a_points_delta AS playerAPointsDelta,
+            m.player_b_points_delta AS playerBPointsDelta,
+            m.started_at AS startedAt,
+            m.finished_at AS finishedAt
+        FROM pk_match m
+        LEFT JOIN user ua ON ua.id = m.player_a_id
+        LEFT JOIN user ub ON ub.id = m.player_b_id
+        WHERE (m.player_a_id = #{userId} OR m.player_b_id = #{userId})
+          AND m.status IN ('finished', 'forfeit')
+        ORDER BY m.finished_at DESC, m.id DESC
+        LIMIT #{limit}
+    </select>
+
+    <select id="selectPreviousWinnerBetween" resultType="java.lang.Long">
+        SELECT winner_user_id
+        FROM pk_match
+        WHERE id != #{excludeMatchId}
+          AND winner_user_id IS NOT NULL
+          AND status IN ('finished', 'forfeit')
+          AND (
+              (player_a_id = #{userAId} AND player_b_id = #{userBId})
+              OR (player_a_id = #{userBId} AND player_b_id = #{userAId})
+          )
+        ORDER BY finished_at DESC, id DESC
+        LIMIT 1
+    </select>
+
+</mapper>

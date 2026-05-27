@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.gduf.mapper.PkMatchQuestionMapper">
+
+    <select id="selectReplayQuestions" resultType="java.util.Map">
+        SELECT
+            q.question_index AS questionIndex,
+            q.cet_word_id AS cetWordId,
+            q.mode AS mode,
+            q.options_json AS optionsJson,
+            w.word AS word,
+            w.pos AS pos,
+            w.meaning AS meaning,
+            CASE WHEN q.mode = 'en2cn' THEN w.meaning ELSE w.word END AS correctAnswer,
+            a.buzz_user_id AS buzzUserId,
+            a.answer_user_id AS answerUserId,
+            u.username AS answerUsername,
+            a.chosen AS chosen,
+            a.correct AS correct,
+            a.score_delta AS scoreDelta,
+            a.answered_at AS answeredAt
+        FROM pk_match_question q
+        JOIN cet6_word w ON w.id = q.cet_word_id
+        LEFT JOIN pk_match_answer a
+            ON a.match_id = q.match_id
+           AND a.question_index = q.question_index
+        LEFT JOIN user u ON u.id = a.answer_user_id
+        WHERE q.match_id = #{matchId}
+        ORDER BY q.question_index ASC
+    </select>
+
+</mapper>

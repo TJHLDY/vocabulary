@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.gduf.mapper.PkUserStatsMapper">
+
+    <insert id="upsert">
+        INSERT INTO pk_user_stats(user_id, points, wins, losses, draws, matches, highest_streak, updated_at)
+        VALUES(#{userId}, #{pointsDelta}, #{isWin}, #{isLoss}, #{isDraw}, 1, #{highestStreak}, NOW())
+        ON DUPLICATE KEY UPDATE
+            points = GREATEST(0, points + #{pointsDelta}),
+            wins = wins + (#{isWin} = true),
+            losses = losses + (#{isLoss} = true),
+            draws = draws + (#{isDraw} = true),
+            matches = matches + 1,
+            highest_streak = GREATEST(highest_streak, #{highestStreak}),
+            updated_at = NOW()
+    </insert>
+
+    <select id="selectLeaderboard" resultType="java.util.HashMap">
+        <choose>
+            <when test="scope == 'week'">
+                <![CDATA[
+                SELECT
+                    s.user_id AS userId, u.username, u.avatar_url AS avatarUrl,
+                    s.points, s.wins, s.losses, s.draws, s.matches,
+                    CASE WHEN s.wins + s.losses + s.draws > 0
+                         THEN ROUND(s.wins * 100.0 / (s.wins + s.losses + s.draws), 1)
+                         ELSE 0 END AS winRate,
+                    s.highest_streak AS highestStreak,
+                    COALESCE(d.net_points, 0) AS pointsToday
+                FROM pk_user_stats s
+                JOIN user u ON u.id = s.user_id
+                JOIN (
+                    SELECT DISTINCT user_id FROM pk_daily_stats
+                    WHERE stat_date >= DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY)
+                      AND stat_date <= CURDATE()
+                ) active ON active.user_id = s.user_id
+                LEFT JOIN pk_daily_stats d ON d.user_id = s.user_id AND d.stat_date = CURDATE()
+                ORDER BY s.points DESC, s.wins DESC, winRate DESC, s.highest_streak DESC, s.user_id ASC
+                ]]>
+            </when>
+            <when test="scope == 'all'">
+                <![CDATA[
+                SELECT
+                    s.user_id AS userId, u.username, u.avatar_url AS avatarUrl,
+                    s.points, s.wins, s.losses, s.draws, s.matches,
+                    CASE WHEN s.wins + s.losses + s.draws > 0
+                         THEN ROUND(s.wins * 100.0 / (s.wins + s.losses + s.draws), 1)
+                         ELSE 0 END AS winRate,
+                    s.highest_streak AS highestStreak,
+                    COALESCE(d.net_points, 0) AS pointsToday
+                FROM pk_user_stats s
+                JOIN user u ON u.id = s.user_id
+                LEFT JOIN pk_daily_stats d ON d.user_id = s.user_id AND d.stat_date = CURDATE()
+                ORDER BY s.points DESC, s.wins DESC, winRate DESC, s.highest_streak DESC, s.user_id ASC
+                ]]>
+            </when>
+            <otherwise>
+                <![CDATA[
+                SELECT
+                    s.user_id AS userId, u.username, u.avatar_url AS avatarUrl,
+                    s.points, s.wins, s.losses, s.draws, s.matches,
+                    CASE WHEN s.wins + s.losses + s.draws > 0
+                         THEN ROUND(s.wins * 100.0 / (s.wins + s.losses + s.draws), 1)
+                         ELSE 0 END AS winRate,
+                    s.highest_streak AS highestStreak,
+                    COALESCE(d.net_points, 0) AS pointsToday
+                FROM pk_user_stats s
+                JOIN user u ON u.id = s.user_id
+                JOIN pk_daily_stats d ON d.user_id = s.user_id AND d.stat_date = CURDATE()
+                ORDER BY s.points DESC, s.wins DESC, winRate DESC, s.highest_streak DESC, s.user_id ASC
+                ]]>
+            </otherwise>
+        </choose>
+    </select>
+
+    <select id="selectArenaUsers" resultType="java.util.HashMap">
+        SELECT u.id AS userId, u.username, u.avatar_url AS avatarUrl,
+               COALESCE(s.points, 0) AS pkPoints,
+               CASE WHEN COALESCE(s.wins, 0) + COALESCE(s.losses, 0) + COALESCE(s.draws, 0) > 0
+                    THEN ROUND(s.wins * 100.0 / (s.wins + s.losses + s.draws), 1)
+                    ELSE 0 END AS winRate
+        FROM user u
+        LEFT JOIN pk_user_stats s ON s.user_id = u.id
+        LEFT JOIN pk_user_setting st ON st.user_id = u.id
+        WHERE u.id IN
+        <foreach collection="userIds" item="id" open="(" separator="," close=")">#{id}</foreach>
+          AND u.enabled = true
+          AND (st.invisible IS NULL OR st.invisible = false)
+    </select>
+
+</mapper>

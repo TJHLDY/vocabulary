@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -175,6 +175,7 @@
     margin: 0 auto;
     padding: 28px 24px 60px;
   }
+  body.quiz-active .main { max-width: 1180px; }
 
   /* ---- Search ---- */
   .search-box {
@@ -1019,7 +1020,9 @@
     .tab { min-height: 44px; }
   }
   /* ---- Quiz ---- */
-  .quiz-top-row { display: flex; gap: 16px; margin-bottom: 20px; align-items: stretch; }
+  .quiz-shell { display: block; }
+  .quiz-main-col { min-width: 0; }
+  .quiz-top-row { display: grid; grid-template-columns: minmax(220px, 280px) minmax(360px, 1fr) 340px; gap: 16px; margin-bottom: 20px; align-items: stretch; }
   .quiz-start { text-align: center; padding: 24px 20px; background: var(--paper); border-radius: var(--radius-sm); box-shadow: var(--shadow-sm); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; min-width: 200px; }
   .quiz-start-btn { display: inline-block; background: var(--accent); color: #fff; border: none; padding: 14px 36px; border-radius: 14px; font-size: 1.05rem; font-family: inherit; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 16px rgba(74,111,165,0.25); }
   .quiz-start-btn:hover { background: var(--accent-hover); transform: translateY(-2px); box-shadow: 0 6px 24px rgba(74,111,165,0.35); }
@@ -1126,7 +1129,7 @@
   .btn-result-continue { background: var(--accent); border: none; color: #fff; }
   .btn-result-continue:hover { background: var(--accent-hover); }
   @media (max-width: 640px) {
-    .quiz-top-row { flex-direction: column; }
+    .quiz-top-row { display: flex; flex-direction: column; }
     .quiz-start { min-width: unset; padding: 18px 16px; gap: 10px; }
     .quiz-chart-wrap { padding: 14px 12px; }
     .quiz-chart { height: 130px; }
@@ -1148,10 +1151,10 @@
   }
   /* ---- Leaderboard ---- */
   .leaderboard-panel {
-    width: 280px; min-width: 260px; flex-shrink: 0;
+    width: 100%; min-width: 280px; flex-shrink: 0;
     background: var(--paper); border-radius: var(--radius-sm);
     box-shadow: var(--shadow-sm); display: flex; flex-direction: column;
-    overflow: hidden; max-height: 320px;
+    overflow: hidden; max-height: 560px;
   }
   .leaderboard-header {
     display: flex; align-items: center; justify-content: space-between;
@@ -1159,6 +1162,16 @@
   }
   .leaderboard-header h3 {
     font-size: 0.85rem; color: var(--ink-light); font-weight: 500; margin: 0;
+  }
+  .leaderboard-controls { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+  .leaderboard-mode-tabs { display: flex; gap: 4px; padding: 3px; background: var(--warm-light); border-radius: 14px; }
+  .leaderboard-mode-tabs button {
+    padding: 4px 10px; font-size: 0.74rem; font-family: inherit;
+    border: none; border-radius: 11px; background: transparent;
+    cursor: pointer; color: var(--warm); transition: all 0.15s;
+  }
+  .leaderboard-mode-tabs button.active {
+    background: var(--paper); color: var(--accent); box-shadow: var(--shadow-sm); font-weight: 600;
   }
   .leaderboard-tabs { display: flex; gap: 4px; }
   .leaderboard-tabs button {
@@ -1190,6 +1203,15 @@
     flex-shrink: 0; overflow: hidden;
   }
   .lb-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .lb-avatar-wrap { position: relative; flex-shrink: 0; }
+  .pk-crown { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); font-size: 1rem; line-height: 1; z-index: 1; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.18)); }
+  .pk-crown.gold { color: #f0c060; animation: crownGlow 2s ease-in-out infinite; }
+  .pk-crown.silver { color: #c0c0c0; }
+  .pk-crown.bronze { color: #cd7f32; }
+  @keyframes crownGlow { 0%,100%{filter:drop-shadow(0 0 4px rgba(240,192,96,0.6))} 50%{filter:drop-shadow(0 0 12px rgba(240,192,96,0.95))} }
+  .lb-avatar.pk-rank1 { box-shadow: 0 0 0 2px #f0c060, 0 0 12px rgba(240,192,96,0.45); }
+  .lb-avatar.pk-rank2 { box-shadow: 0 0 0 2px #c0c0c0; }
+  .lb-avatar.pk-rank3 { box-shadow: 0 0 0 2px #cd7f32; }
   .lb-info { flex: 1; min-width: 0; }
   .lb-name {
     font-size: 0.85rem; font-weight: 500; color: var(--ink);
@@ -1218,6 +1240,7 @@
   }
   .leaderboard-mobile-btn:hover { background: #e5ddd0; }
   @media (max-width: 640px) {
+    .quiz-shell { display: block; }
     .leaderboard-panel { display: none; }
     .leaderboard-mobile-btn { display: inline-block; }
   }
@@ -1270,6 +1293,176 @@
     .profile-btn { min-height: 48px; padding: 14px 12px; font-size: 0.95rem; }
     #profileSidebar { width: 100vw; }
     .pwd-field input { font-size: 16px; }
+  }
+
+  /* ---- PK ---- */
+  .pk-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
+  .pk-btn { background: var(--gold); color: #fff; border: none; padding: 8px 18px; border-radius: 8px; font-size: 0.82rem; font-family: inherit; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+  .pk-btn:hover { opacity: 0.88; }
+  .pk-btn:disabled { opacity: 0.5; cursor: default; }
+  .pk-rule-btn { width: 26px; height: 26px; border-radius: 50%; background: var(--paper); color: var(--warm); border: 1px solid var(--warm-border); padding: 0; font-size: 0.78rem; line-height: 1; font-weight: 700; font-family: inherit; cursor: pointer; transition: all 0.15s; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .pk-rule-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); transform: translateY(-1px); }
+  .pk-toggle-wrap { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: var(--ink-light); cursor: pointer; user-select: none; margin-left: 4px; }
+  .pk-toggle-track { width: 36px; height: 20px; border-radius: 10px; background: var(--border); position: relative; transition: background 0.2s; flex-shrink: 0; }
+  .pk-toggle-track.on { background: var(--accent); }
+  .pk-toggle-knob { width: 16px; height: 16px; border-radius: 50%; background: #fff; position: absolute; top: 2px; left: 2px; transition: left 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.15); }
+  .pk-toggle-track.on .pk-toggle-knob { left: 18px; }
+  .pk-summary { font-size: 0.75rem; color: var(--gold); margin-left: auto; white-space: nowrap; }
+  .pk-arena-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 1000; justify-content: center; align-items: center; }
+  .pk-arena-overlay.show { display: flex; }
+  .pk-arena-box { background: var(--paper); border-radius: var(--radius); padding: 24px; width: 520px; max-width: 92vw; max-height: 78vh; box-shadow: var(--shadow-md); display: flex; flex-direction: column; }
+  .pk-arena-box h3 { font-size: 1rem; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+.pk-arena-close { background: none; border: none; font-size: 1.3rem; cursor: pointer; color: #999; }
+.pk-arena-close:hover { color: var(--ink); }
+.pk-arena-me { margin-bottom: 10px; padding: 10px 12px; border-radius: 10px; background: var(--accent-light); color: var(--ink-light); font-size: 0.78rem; line-height: 1.5; }
+.pk-arena-refresh { align-self: flex-end; margin-bottom: 10px; border: 1px solid var(--border); background: var(--paper); color: var(--accent); border-radius: 14px; padding: 5px 12px; font-size: 0.75rem; font-family: inherit; cursor: pointer; }
+.pk-arena-refresh:hover { border-color: var(--accent); background: var(--accent-light); }
+.pk-arena-actions { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; margin-bottom: 10px; }
+.pk-arena-action { border: 1px solid var(--border); background: var(--paper); color: var(--accent); border-radius: 14px; padding: 5px 12px; font-size: 0.75rem; font-family: inherit; cursor: pointer; }
+.pk-arena-action:hover { border-color: var(--accent); background: var(--accent-light); }
+.pk-arena-section-title { font-size: 0.76rem; color: var(--ink-light); margin: 8px 0 6px; font-weight: 600; }
+.pk-arena-list { flex: 1; overflow-y: auto; }
+  .pk-arena-user { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid #f5f3ef; }
+  :root[data-theme="dark"] .pk-arena-user { border-color: #3a3a4a; }
+  .pk-arena-user:last-child { border-bottom: none; }
+.pk-arena-av { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 600; color: #fff; flex-shrink: 0; overflow: hidden; }
+.pk-arena-av img { width: 100%; height: 100%; object-fit: cover; }
+.pk-arena-av-wrap { position: relative; flex-shrink: 0; }
+  .pk-arena-info { flex: 1; min-width: 0; }
+  .pk-arena-name { font-size: 0.85rem; font-weight: 500; color: var(--ink); }
+  .pk-arena-pts { font-size: 0.72rem; color: #999; }
+  .pk-arena-invite { background: var(--accent); color: #fff; border: none; padding: 5px 14px; border-radius: 6px; font-size: 0.75rem; cursor: pointer; font-family: inherit; transition: all 0.15s; white-space: nowrap; flex-shrink: 0; }
+  .pk-arena-invite:hover { opacity: 0.85; }
+  .pk-arena-invite:disabled { opacity: 0.4; cursor: default; }
+  .pk-arena-empty { color: #ccc; text-align: center; padding: 24px 0; font-size: 0.85rem; }
+.pk-recent-list { border-top: 1px solid var(--border); margin-top: 10px; padding-top: 8px; max-height: 170px; overflow-y: auto; flex-shrink: 0; }
+.pk-recent-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid #f5f3ef; }
+:root[data-theme="dark"] .pk-recent-row { border-color: #3a3a4a; }
+.pk-recent-main { flex: 1; min-width: 0; }
+.pk-recent-title { font-size: 0.8rem; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pk-recent-meta { font-size: 0.7rem; color: #999; margin-top: 2px; }
+.pk-recent-result { width: 34px; font-size: 0.72rem; font-weight: 700; color: var(--ink-light); }
+.pk-recent-result.win { color: var(--success); }
+.pk-recent-result.lose { color: var(--error); }
+.pk-recent-review { border: 1px solid var(--border); background: var(--paper); color: var(--accent); border-radius: 6px; padding: 4px 10px; font-size: 0.72rem; font-family: inherit; cursor: pointer; }
+.pk-declaration-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+.pk-declaration-field label { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--ink-light); margin-bottom: 4px; }
+.pk-declaration-field input { width: 100%; border: 1.5px solid var(--border); border-radius: 8px; padding: 10px 12px; font-size: 0.9rem; font-family: inherit; background: var(--paper); color: var(--ink); outline: none; }
+.pk-declaration-field input:focus { border-color: var(--accent); }
+  .pk-invite-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 2000; justify-content: center; align-items: center; }
+  .pk-invite-overlay.show { display: flex; }
+  .pk-invite-box { background: var(--paper); border-radius: 16px; padding: 32px 28px; text-align: center; max-width: 320px; width: 88vw; box-shadow: 0 8px 40px rgba(0,0,0,0.15); animation: slideUp 0.3s; }
+  .pk-invite-av { width: 56px; height: 56px; border-radius: 50%; margin: 0 auto 12px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; font-weight: 700; color: #fff; overflow: hidden; }
+  .pk-invite-av img { width: 100%; height: 100%; object-fit: cover; }
+  .pk-invite-name { font-size: 1rem; font-weight: 600; color: var(--ink); margin-bottom: 4px; }
+  .pk-invite-sub { font-size: 0.82rem; color: var(--ink-light); margin-bottom: 16px; }
+  .pk-invite-countdown { font-size: 1.5rem; font-weight: 700; color: var(--error); margin-bottom: 20px; }
+  .pk-invite-actions { display: flex; gap: 12px; justify-content: center; }
+  .pk-invite-accept { background: var(--accent); color: #fff; border: none; padding: 10px 28px; border-radius: 10px; font-size: 0.9rem; font-family: inherit; cursor: pointer; transition: all 0.15s; }
+  .pk-invite-accept:hover { opacity: 0.88; }
+  .pk-invite-reject { background: var(--border); color: var(--ink-light); border: none; padding: 10px 28px; border-radius: 10px; font-size: 0.9rem; font-family: inherit; cursor: pointer; transition: all 0.15s; }
+  .pk-invite-reject:hover { background: #f5e0e0; color: var(--error); }
+  .pk-rules-box { text-align: left; }
+  .pk-rules-box h3 { font-size: 1rem; margin-bottom: 12px; color: var(--ink); }
+  .pk-rules-box ul { margin: 0; padding-left: 18px; color: var(--ink-light); font-size: 0.86rem; line-height: 1.8; }
+  .pk-rules-box li strong { color: var(--ink); }
+  .pk-match-overlay { display: none; position: fixed; inset: 0; background: var(--cream); z-index: 999; flex-direction: column; }
+  .pk-match-overlay.active { display: flex; }
+  .pk-match-topbar { display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; background: var(--paper); border-bottom: 1px solid var(--border); }
+  .pk-match-exit { background: none; border: 1px solid var(--warm-border); color: var(--warm); padding: 6px 16px; border-radius: 16px; cursor: pointer; font-size: 0.82rem; font-family: inherit; }
+  .pk-match-exit:hover { border-color: var(--error); color: var(--error); }
+  .pk-match-progress { font-size: 0.88rem; color: var(--ink-light); font-weight: 500; }
+  .pk-match-timer { font-size: 1rem; font-weight: 700; color: var(--accent); }
+  .pk-match-timer.urgent { color: var(--error); animation: pkPulse 0.6s infinite; }
+  @keyframes pkPulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  .pk-match-players { display: flex; gap: 0; padding: 10px 16px; background: var(--paper); border-bottom: 1px solid var(--border); align-items: center; }
+  .pk-match-player { flex: 1; display: flex; align-items: center; gap: 8px; padding: 6px 8px; }
+  .pk-match-pav { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 600; color: #fff; flex-shrink: 0; overflow: hidden; }
+  .pk-match-pav img { width: 100%; height: 100%; object-fit: cover; }
+  .pk-match-pinfo { min-width: 0; }
+  .pk-match-pname { font-size: 0.82rem; font-weight: 500; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pk-match-pscore { font-size: 1.3rem; font-weight: 700; color: var(--accent); }
+  .pk-match-vs { font-size: 0.85rem; font-weight: 700; color: #ccc; flex-shrink: 0; padding: 0 8px; }
+  .pk-match-body { flex: 1; display: flex; align-items: center; justify-content: center; padding: 16px; overflow-y: auto; }
+  .pk-match-card { background: var(--paper); border-radius: 16px; padding: 28px 24px; max-width: 440px; width: 100%; box-shadow: 0 4px 24px rgba(0,0,0,0.08); text-align: center; }
+  .pk-question-line { font-size: 1.3rem; font-weight: 700; color: var(--ink); margin-bottom: 24px; }
+  .pk-options { display: flex; flex-direction: column; gap: 10px; }
+  .pk-option { width: 100%; padding: 14px 18px; font-size: 0.95rem; font-family: inherit; border: 2px solid var(--border); border-radius: 10px; background: var(--paper); cursor: pointer; text-align: center; color: var(--ink); transition: all 0.15s; }
+  .pk-option:hover:not(:disabled) { border-color: var(--accent); background: var(--accent-light); }
+  .pk-option:disabled { cursor: default; }
+  .pk-option.correct-pick { border-color: #4caf50; background: var(--success-light); color: #2e7d32; }
+  .pk-option.wrong-pick { border-color: #e53935; background: var(--error-light); color: #c62828; }
+  .pk-option.reveal-correct { border-color: #4caf50; background: var(--success-light); color: #2e7d32; }
+  .pk-status { margin-top: 14px; font-size: 0.85rem; color: var(--ink-light); min-height: 1.2em; }
+  .pk-status.good { color: var(--success); }
+  .pk-status.bad { color: var(--error); }
+  .pk-match-result { text-align: center; position: relative; overflow: hidden; min-height: 330px; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+  .pk-match-result:before { content: ""; position: absolute; inset: 28px 8px auto; height: 140px; background: url("assets/pk-brush-slash.png") center/contain no-repeat; opacity: 0.18; transform: translateX(-12%) rotate(-3deg); animation: pkBrushIn 0.7s ease-out both; pointer-events: none; }
+  .pk-match-result.lose:before { background-image: url("assets/pk-brush-slash-reverse.png"); }
+  @keyframes pkBrushIn { from { opacity: 0; clip-path: inset(0 100% 0 0); } to { opacity: 0.18; clip-path: inset(0 0 0 0); } }
+  .pk-match-result .result-stamp { position: relative; z-index: 1; font-size: 0.78rem; color: var(--warm); margin-bottom: 6px; }
+  .pk-match-result h2 { position: relative; z-index: 1; font-family: 'Playfair Display', 'Noto Serif SC', serif; font-size: 1.75rem; color: var(--ink); margin: 2px 0 6px; letter-spacing: 0; }
+  .pk-match-result .result-score { position: relative; z-index: 1; font-size: 2rem; font-weight: 800; color: var(--accent); margin-bottom: 8px; }
+  .pk-match-result .result-declaration { position: relative; z-index: 1; font-family: 'Noto Serif SC', serif; font-size: 1.25rem; font-weight: 700; color: var(--ink); background: rgba(255,255,255,0.58); border: 1px solid var(--warm-border); border-radius: 8px; padding: 10px 14px; max-width: 100%; margin: 6px 0 12px; }
+  :root[data-theme="dark"] .pk-match-result .result-declaration { background: rgba(42,42,54,0.68); }
+  .pk-match-result .result-detail { position: relative; z-index: 1; font-size: 0.85rem; color: var(--ink-light); margin-bottom: 16px; line-height: 1.6; }
+  .pk-result-actions { position: relative; z-index: 1; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .pk-result-btn { padding: 10px 20px; border-radius: 8px; font-size: 0.86rem; font-family: inherit; background: var(--accent); color: #fff; border: none; cursor: pointer; }
+  .pk-result-btn.secondary { background: var(--paper); color: var(--accent); border: 1px solid var(--border); }
+.pk-replay-list { max-height: 58vh; overflow-y: auto; display: grid; gap: 10px; padding-right: 4px; }
+.pk-replay-item { border: 1px solid var(--border); border-radius: 8px; padding: 12px; background: var(--cream); }
+.pk-replay-head { display: flex; justify-content: space-between; gap: 12px; color: var(--ink-light); font-size: 0.76rem; margin-bottom: 6px; }
+.pk-replay-question { font-size: 1rem; font-weight: 700; color: var(--ink); margin-bottom: 8px; }
+.pk-replay-options { display: grid; gap: 6px; }
+.pk-replay-option { border: 1px solid var(--border); border-radius: 6px; padding: 7px 9px; font-size: 0.82rem; color: var(--ink); background: var(--paper); }
+.pk-replay-option.correct { border-color: #77b282; background: var(--success-light); }
+.pk-replay-option.chosen:not(.correct) { border-color: #d88b86; background: var(--error-light); }
+.pk-replay-answer { margin-top: 8px; font-size: 0.78rem; color: var(--ink-light); }
+  .pk-lb-panel { background: var(--paper); border-radius: var(--radius-sm); box-shadow: var(--shadow-sm); margin-top: 16px; overflow: hidden; }
+  .pk-lb-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; border-bottom: 1px solid var(--border); }
+  .pk-lb-header h3 { font-size: 0.85rem; color: var(--ink-light); font-weight: 500; }
+  .pk-lb-tabs { display: flex; gap: 4px; }
+  .pk-lb-tabs button { padding: 4px 10px; font-size: 0.75rem; font-family: inherit; border: 1px solid var(--border); border-radius: 12px; background: none; cursor: pointer; color: #999; transition: all 0.15s; }
+  .pk-lb-tabs button.active { background: var(--gold); color: #fff; border-color: var(--gold); }
+  .pk-lb-list { max-height: 360px; overflow-y: auto; }
+  .pk-lb-row { display: flex; align-items: center; gap: 10px; padding: 10px 16px; border-bottom: 1px solid #f5f3ef; transition: background 0.15s; }
+  :root[data-theme="dark"] .pk-lb-row { border-color: #3a3a4a; }
+  .pk-lb-row:hover { background: var(--accent-light); }
+  .pk-lb-row.pk-lb-top .pk-lb-rank { display: none; }
+  .pk-lb-rank { width: 28px; text-align: center; font-weight: 700; font-size: 0.85rem; color: var(--ink-light); flex-shrink: 0; }
+  .pk-lb-avatar-wrap { position: relative; flex-shrink: 0; }
+  .pk-lb-crown { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); font-size: 1rem; line-height: 1; z-index: 1; }
+  .pk-lb-crown.gold { color: #f0c060; text-shadow: 0 0 8px rgba(240,192,96,0.7), 0 0 20px rgba(240,192,96,0.3); animation: crownGlow 2s ease-in-out infinite; }
+  @keyframes crownGlow { 0%,100%{text-shadow:0 0 6px rgba(240,192,96,0.6)} 50%{text-shadow:0 0 14px rgba(240,192,96,0.9),0 0 26px rgba(240,192,96,0.4)} }
+  .pk-lb-crown.silver { color: #c0c0c0; }
+  .pk-lb-crown.bronze { color: #cd7f32; }
+  .pk-lb-av { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 600; color: #fff; overflow: hidden; }
+  .pk-lb-av img { width: 100%; height: 100%; object-fit: cover; }
+  .pk-lb-av.rank1 { box-shadow: 0 0 8px rgba(240,192,96,0.6); border: 2px solid #f0c060; }
+  .pk-lb-av.rank2 { border: 2px solid #c0c0c0; }
+  .pk-lb-av.rank3 { border: 2px solid #cd7f32; }
+  .pk-lb-info { flex: 1; min-width: 0; }
+  .pk-lb-name { font-size: 0.85rem; font-weight: 500; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pk-lb-stats { font-size: 0.7rem; color: #999; line-height: 1.45; }
+  .pk-lb-stats span { display: inline-block; margin-right: 8px; }
+  .pk-lb-empty { color: #ccc; text-align: center; padding: 24px 0; font-size: 0.82rem; }
+  @media (max-width: 640px) {
+    .pk-row { justify-content: center; gap: 8px; }
+    .pk-toggle-wrap { margin-left: 0; }
+    .pk-summary { flex-basis: 100%; margin-left: 0; text-align: center; font-size: 0.72rem; }
+    .pk-arena-box { max-height: 60vh; }
+    .pk-rule-btn { width: 24px; height: 24px; font-size: 0.75rem; }
+    .pk-match-card { padding: 20px 16px; }
+    .pk-question-line { font-size: 1.15rem; }
+    .pk-option { padding: 12px 14px; font-size: 0.88rem; }
+    .pk-match-player { gap: 4px; padding: 4px; }
+    .pk-match-pav { width: 30px; height: 30px; font-size: 0.75rem; }
+    .pk-match-pscore { font-size: 1.1rem; }
+    .pk-lb-header { align-items: flex-start; gap: 8px; }
+    .pk-lb-tabs { flex-shrink: 0; }
+    .pk-lb-row { gap: 8px; padding: 10px 12px; }
+    .pk-lb-stats { display: flex; flex-wrap: wrap; gap: 1px 8px; }
+    .pk-lb-stats span { margin-right: 0; }
   }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
@@ -1341,7 +1534,7 @@ function decodeJwtPayload(rawToken) {
   <!-- ====== Tab 3: 刷六级 ====== -->
   <div class="tab-content" id="tab-quiz">
     <!-- 默认视图: 开始按钮 + 图表 + 学习记录 -->
-    <div id="quizDefault">
+    <div id="quizDefault" class="quiz-shell">
       <div class="quiz-top-row">
         <div class="quiz-start">
           <div class="quiz-mode-switch" id="quizModeSwitch">
@@ -1350,6 +1543,15 @@ function decodeJwtPayload(rawToken) {
             <button data-mode="mixed" onclick="setQuizMode('mixed', this)">🔀 混合</button>
           </div>
           <button class="quiz-start-btn" onclick="startQuiz()">📝 开始刷题</button>
+          <div class="pk-row">
+            <button class="pk-btn" onclick="pkOpenArena()">⚔️ 决斗场</button>
+            <button class="pk-rule-btn" onclick="pkOpenRules()" title="决斗场规则" aria-label="决斗场规则">?</button>
+            <div class="pk-toggle-wrap" onclick="pkToggleInvisible()">
+              <span class="pk-toggle-track" id="pkToggleTrack"><span class="pk-toggle-knob"></span></span>
+              <span id="pkToggleLabel">隐身</span>
+            </div>
+            <span class="pk-summary" id="pkSummary"></span>
+          </div>
         </div>
         <div class="quiz-chart-wrap">
           <h3>本周概览</h3>
@@ -1358,9 +1560,15 @@ function decodeJwtPayload(rawToken) {
         <div class="leaderboard-panel" id="leaderboardPanel">
           <div class="leaderboard-header">
             <h3>排行榜</h3>
-            <div class="leaderboard-tabs" id="leaderboardTabs">
+            <div class="leaderboard-controls">
+              <div class="leaderboard-mode-tabs" id="leaderboardModeTabs">
+                <button class="active" data-mode="quiz" onclick="switchLeaderboardMode('quiz', this)">刷题榜</button>
+                <button data-mode="pk" onclick="switchLeaderboardMode('pk', this)">决斗榜</button>
+              </div>
+              <div class="leaderboard-tabs" id="leaderboardTabs">
               <button class="active" data-scope="day" onclick="switchLeaderboard('day', this)">日榜</button>
               <button data-scope="week" onclick="switchLeaderboard('week', this)">周榜</button>
+              </div>
             </div>
           </div>
           <div class="leaderboard-list" id="leaderboardList">
@@ -1376,6 +1584,18 @@ function decodeJwtPayload(rawToken) {
         </div>
         <div class="quiz-hint" id="quizHint" style="display:none;padding:8px 16px;font-size:0.78rem;color:#999;border-bottom:1px solid #f5f3ef;">提示：错题连续答对 3 次即可移入已掌握<button class="qr-ex-toggle-all" onclick="event.stopPropagation();toggleAllExamples()" id="btnToggleAllEx" title="展开/收起全部例句">📖 展开例句</button></div>
         <div class="quiz-record-list" id="quizRecordList"></div>
+      </div>
+      <!-- PK Leaderboard -->
+      <div class="pk-lb-panel-legacy" id="pkLeaderboardPanel" style="display:none;">
+        <div class="pk-lb-header">
+          <h3>🏆 决斗排行榜</h3>
+          <div class="pk-lb-tabs" id="pkLbTabs">
+            <button class="active" data-scope="day" onclick="pkSwitchLeaderboard('day',this)">日榜</button>
+            <button data-scope="week" onclick="pkSwitchLeaderboard('week',this)">周榜</button>
+            <button data-scope="all" onclick="pkSwitchLeaderboard('all',this)">总榜</button>
+          </div>
+        </div>
+        <div class="pk-lb-list" id="pkLbList"><div class="pk-lb-empty">加载中...</div></div>
       </div>
     </div>
     <!-- 沉浸式答题 -->
@@ -1423,9 +1643,15 @@ function decodeJwtPayload(rawToken) {
       <div class="modal-box" id="leaderboardModal" onclick="event.stopPropagation()" style="max-width:420px;max-height:80vh;display:flex;flex-direction:column;">
         <div class="leaderboard-header" style="flex-shrink:0;">
           <h3>排行榜</h3>
-          <div class="leaderboard-tabs" id="leaderboardModalTabs">
+          <div class="leaderboard-controls">
+            <div class="leaderboard-mode-tabs" id="leaderboardModalModeTabs">
+              <button class="active" data-mode="quiz" onclick="switchLeaderboardMode('quiz', this)">刷题榜</button>
+              <button data-mode="pk" onclick="switchLeaderboardMode('pk', this)">决斗榜</button>
+            </div>
+            <div class="leaderboard-tabs" id="leaderboardModalTabs">
             <button class="active" data-scope="day" onclick="switchLeaderboard('day', this)">日榜</button>
             <button data-scope="week" onclick="switchLeaderboard('week', this)">周榜</button>
+            </div>
           </div>
         </div>
         <div class="leaderboard-list" id="leaderboardModalList" style="flex:1;overflow-y:auto;">
@@ -1539,6 +1765,97 @@ function decodeJwtPayload(rawToken) {
   </div>
 </div>
 
+<!-- PK Arena Modal -->
+<div class="pk-arena-overlay" id="pkArenaOverlay" onclick="if(event.target===this)pkCloseArena()">
+  <div class="pk-arena-box">
+    <h3>⚔️ 决斗场 <button class="pk-arena-close" onclick="pkCloseArena()">&times;</button></h3>
+    <div class="pk-arena-me" id="pkArenaMe">正在读取你的战绩...</div>
+    <div class="pk-arena-actions">
+      <button class="pk-arena-action" onclick="pkOpenDeclarationSettings()">胜利宣言</button>
+      <button class="pk-arena-refresh" id="pkArenaRefresh" onclick="pkRefreshArenaUsers()">刷新在线状态</button>
+    </div>
+    <div class="pk-arena-section-title">在线对手</div>
+    <div class="pk-arena-list" id="pkArenaList"><div class="pk-arena-empty">加载中...</div></div>
+    <div class="pk-recent-list">
+      <div class="pk-arena-section-title">赛场回顾</div>
+      <div id="pkRecentMatches"><div class="pk-arena-empty">加载中...</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- PK Incoming Invite Modal -->
+<div class="pk-invite-overlay" id="pkInviteOverlay">
+  <div class="pk-invite-box">
+    <div class="pk-invite-av" id="pkInviteAv"></div>
+    <div class="pk-invite-name" id="pkInviteName"></div>
+    <div class="pk-invite-sub">向你发起决斗邀请</div>
+    <div class="pk-invite-countdown" id="pkInviteCountdown">20s</div>
+    <div class="pk-invite-actions">
+      <button class="pk-invite-accept" onclick="pkAcceptInvite()">接受</button>
+      <button class="pk-invite-reject" onclick="pkRejectInvite()">拒绝</button>
+    </div>
+  </div>
+</div>
+
+<!-- PK Rules Modal -->
+<div class="modal-overlay" id="pkRulesOverlay" onclick="pkCloseRules(event)" style="display:none;">
+  <div class="modal-box pk-rules-box" onclick="event.stopPropagation()" style="max-width:420px;">
+    <h3>决斗场规则</h3>
+    <ul>
+      <li><strong>玩法：</strong>两人进行六级混合抢答，一局 20 题。</li>
+      <li><strong>抢答：</strong>每题只有第一个抢到的人可以回答，15 秒无人抢答则跳过。</li>
+      <li><strong>局内分：</strong>答对 +1，答错 -1，未抢到不加不扣。</li>
+      <li><strong>积分：</strong>胜者基础 +10，败者按自己的局内净分加减，总积分最低为 0。</li>
+      <li><strong>上限：</strong>每日基础积分最多获得 60 分，连对奖励另算。</li>
+      <li><strong>隐身：</strong>开启后不会出现在决斗场，也不会被邀请。</li>
+    </ul>
+    <div class="modal-actions" style="justify-content:center;margin-top:18px;">
+      <button class="btn-submit" onclick="pkCloseRules()">知道了</button>
+    </div>
+  </div>
+</div>
+
+<!-- PK Declarations Modal -->
+<div class="modal-overlay" id="pkDeclarationOverlay" onclick="pkCloseDeclarationSettings(event)" style="display:none;">
+  <div class="modal-box" onclick="event.stopPropagation()" style="max-width:460px;">
+    <h3>胜利宣言</h3>
+    <div class="pk-declaration-grid">
+      <div class="pk-declaration-field"><label><span>首胜宣言</span><span id="firstWinDeclarationCount">0/15</span></label><input id="firstWinDeclaration" maxlength="15" placeholder="初战告捷"></div>
+      <div class="pk-declaration-field"><label><span>复仇宣言</span><span id="revengeDeclarationCount">0/15</span></label><input id="revengeDeclaration" maxlength="15" placeholder="这局拿回来了"></div>
+      <div class="pk-declaration-field"><label><span>完胜宣言</span><span id="sweepDeclarationCount">0/15</span></label><input id="sweepDeclaration" maxlength="15" placeholder="完胜收笔"></div>
+      <div class="pk-declaration-field"><label><span>总胜宣言</span><span id="finalWinDeclarationCount">0/15</span></label><input id="finalWinDeclaration" maxlength="15" placeholder="胜负已定"></div>
+    </div>
+    <div class="modal-actions" style="margin-top:16px;">
+      <button class="btn-clear" onclick="pkCloseDeclarationSettings()">取消</button>
+      <button class="btn-submit" onclick="pkSaveDeclarations()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- PK Replay Modal -->
+<div class="modal-overlay" id="pkReplayOverlay" onclick="pkCloseReplay(event)" style="display:none;">
+  <div class="modal-box" onclick="event.stopPropagation()" style="max-width:680px;">
+    <h3>赛场回顾</h3>
+    <div id="pkReplayContent" class="pk-replay-list"><div class="pk-arena-empty">加载中...</div></div>
+    <div class="modal-actions" style="margin-top:14px;">
+      <button class="btn-submit" onclick="pkCloseReplay()">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- PK Match Overlay -->
+<div class="pk-match-overlay" id="pkMatchOverlay">
+  <div class="pk-match-topbar">
+    <button class="pk-match-exit" onclick="pkExitMatch()">← 退出</button>
+    <span class="pk-match-progress" id="pkMatchProgress">第 1/20 题</span>
+    <span class="pk-match-timer" id="pkMatchTimer">⏱ 15s</span>
+  </div>
+  <div class="pk-match-players" id="pkMatchPlayers"></div>
+  <div class="pk-match-body">
+    <div class="pk-match-card" id="pkMatchCard"></div>
+  </div>
+</div>
+
 <script>
 const API = '';
 const DICT = '/api/words/dict-proxy';
@@ -1596,6 +1913,7 @@ setInterval(checkBulletin, 30000);
 // ---- Tab Switching ----
 function switchTab(tab) {
   currentTab = tab;
+  document.body.classList.toggle('quiz-active', tab === 'quiz');
   document.querySelectorAll('.tab-nav button').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
   document.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.id === `tab-${tab}`));
   if (_adminRefreshTimer) { clearInterval(_adminRefreshTimer); _adminRefreshTimer = null; }
@@ -1622,21 +1940,42 @@ async function api(url, options) {
   return data;
 }
 
+function normalizeRole(role) {
+  return String(role || 'user').trim().toLowerCase();
+}
+
+function canSeeAdminTab(role) {
+  var normalized = normalizeRole(role);
+  return normalized === 'admin';
+}
+
+function refreshAdminTabVisibility(role) {
+  userRole = normalizeRole(role);
+  var btn = document.getElementById('tabAdminBtn');
+  if (btn) btn.style.display = canSeeAdminTab(userRole) ? '' : 'none';
+}
+
 async function fetchUser() {
+  var payload = null;
   try {
-    const payload = decodeJwtPayload(token);
+    payload = decodeJwtPayload(token);
     if (!payload) throw new Error('Invalid token');
-    userRole = payload.role || 'user';
+    refreshAdminTabVisibility(payload.role);
     updateHeaderAvatar(payload.username || '我的', null);
-    if (userRole === 'admin') {
-      document.getElementById('tabAdminBtn').style.display = '';
-    }
-    if (userRole === 'tester') {
-      document.getElementById('tabAdminBtn').style.display = '';
-    }
   } catch(e) {
     console.error('fetchUser error:', e);
     updateHeaderAvatar('我的', null);
+  }
+  try {
+    const data = await api(API + '/api/user/me');
+    if (data.code === 200 && data.data) {
+      _profileData = data.data;
+      var roleFromProfile = data.data.role || (payload && payload.role) || userRole;
+      refreshAdminTabVisibility(roleFromProfile);
+      updateHeaderAvatar(data.data.username || (payload && payload.username) || '我的', data.data.avatarUrl);
+    }
+  } catch(e) {
+    // Token decoding already handled the first paint; profile refresh can fail silently here.
   }
 }
 
@@ -3939,9 +4278,14 @@ function startConfetti() {
 }
 
 // ---- leaderboard ----
+var _leaderboardMode = 'quiz';
 var _leaderboardScope = 'day';
 
 function loadLeaderboard(scope) {
+  if (_leaderboardMode === 'pk') {
+    pkLoadLeaderboard(scope);
+    return;
+  }
   if (scope) _leaderboardScope = scope;
   var panelList = document.getElementById('leaderboardList');
   var modalList = document.getElementById('leaderboardModalList');
@@ -4017,16 +4361,41 @@ function renderLeaderboard(list, myRank, containerId) {
   }).join('');
 }
 
+function renderLeaderboardScopeTabs() {
+  var scopes = _leaderboardMode === 'pk'
+    ? [{ key: 'day', label: '日榜' }, { key: 'week', label: '周榜' }, { key: 'all', label: '总榜' }]
+    : [{ key: 'day', label: '日榜' }, { key: 'week', label: '周榜' }];
+  var current = _leaderboardMode === 'pk' ? _pkLbScope : _leaderboardScope;
+  var html = scopes.map(function(s) {
+    return '<button class="' + (s.key === current ? 'active' : '') + '" data-scope="' + s.key +
+      '" onclick="switchLeaderboard(\'' + s.key + '\', this)">' + s.label + '</button>';
+  }).join('');
+  ['leaderboardTabs', 'leaderboardModalTabs'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.innerHTML = html;
+  });
+}
+
+function switchLeaderboardMode(mode, btn) {
+  _leaderboardMode = mode === 'pk' ? 'pk' : 'quiz';
+  document.querySelectorAll('#leaderboardModeTabs button, #leaderboardModalModeTabs button').forEach(function(b) {
+    b.classList.toggle('active', b.dataset.mode === _leaderboardMode);
+  });
+  renderLeaderboardScopeTabs();
+  if (_leaderboardMode === 'pk') pkLoadLeaderboard(_pkLbScope);
+  else loadLeaderboard(_leaderboardScope);
+}
+
 function switchLeaderboard(scope, btn) {
-  _leaderboardScope = scope;
-  var tabs = btn.parentElement;
-  tabs.querySelectorAll('button').forEach(function(b) { b.classList.remove('active'); });
-  btn.classList.add('active');
+  if (_leaderboardMode === 'pk') _pkLbScope = scope || _pkLbScope;
+  else _leaderboardScope = scope || _leaderboardScope;
+  var activeScope = _leaderboardMode === 'pk' ? _pkLbScope : _leaderboardScope;
   // sync tabs between panel and modal
   document.querySelectorAll('#leaderboardTabs button, #leaderboardModalTabs button').forEach(function(b) {
-    b.classList.toggle('active', b.dataset.scope === scope);
+    b.classList.toggle('active', b.dataset.scope === activeScope);
   });
-  loadLeaderboard(scope);
+  if (_leaderboardMode === 'pk') pkLoadLeaderboard(activeScope);
+  else loadLeaderboard(activeScope);
 }
 
 function likeLeaderboardUser(targetUserId, btn) {
@@ -4226,6 +4595,874 @@ function submitChangePassword() {
     showToast('网络错误');
   });
 }
+
+
+// ==================== Profile Preload ====================
+var _profilePreloaded = false;
+function preloadProfile() {
+  fetch(API + '/api/user/me', {
+    headers: { 'Authorization': 'Bearer ' + token }
+  }).then(function(r) { return r.json(); }).then(function(data) {
+    if (data.code === 200 && data.data) {
+      _profileData = data.data;
+      _profilePreloaded = true;
+      var url = safeImageUrl(data.data.avatarUrl);
+      if (url) {
+        updateHeaderAvatar(data.data.username || '我的', url);
+        (new Image()).src = url;
+      }
+    }
+  }).catch(function() {});
+}
+
+// Override openProfileSidebar to serve cached data first
+var _origOpenProfileSidebar = openProfileSidebar;
+openProfileSidebar = function() {
+  var sidebar = document.getElementById('profileSidebar');
+  var overlay = document.getElementById('profileSidebarOverlay');
+  sidebar.classList.add('show');
+  overlay.classList.add('show');
+  if (_profileData) {
+    renderProfileSidebar(_profileData);
+    fetch(API + '/api/user/me', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    }).then(function(r) { return r.json(); }).then(function(data) {
+      if (data.code === 200 && data.data) {
+        _profileData = data.data;
+        renderProfileSidebar(data.data);
+        var url = safeImageUrl(data.data.avatarUrl);
+        if (url) updateHeaderAvatar(data.data.username || '我的', url);
+      }
+    }).catch(function() {});
+  } else {
+    showSpinner(document.getElementById('profileSidebarContent'), '加载中...');
+    fetch(API + '/api/user/me', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    }).then(function(r) { return r.json(); }).then(function(data) {
+      if (data.code === 200) {
+        _profileData = data.data;
+        renderProfileSidebar(data.data);
+      } else { showToast(data.msg || '获取资料失败'); }
+    }).catch(function() { showToast('网络错误'); });
+  }
+};
+
+// ==================== PK Duel ====================
+var _pkWs = null;
+var _pkConnected = false;
+var _pkPendingMessages = [];
+var _pkArenaOpen = false;
+var _pkInMatch = false;
+var _pkWaitingRoom = false;
+var _pkInviteTimer = null;
+var _pkInviteButtonTimer = null;
+var _pkActiveInvite = null;
+var _pkOutgoingInvitePending = false;
+var _pkMatch = null;
+var _pkQuestionTimer = null;
+var _pkLbScope = 'day';
+var _pkSettings = { invisible: false };
+var _pkMe = null;
+
+function pkConnect() {
+  if (_pkWs && (_pkWs.readyState === WebSocket.OPEN || _pkWs.readyState === WebSocket.CONNECTING)) return;
+  var proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+  var url = proto + '//' + location.host + '/ws/pk?token=' + encodeURIComponent(token);
+  _pkWs = new WebSocket(url);
+  _pkWs.onopen = function() {
+    _pkConnected = true;
+    if (_pkArenaOpen) pkLoadArenaUsers();
+    var queued = _pkPendingMessages.splice(0);
+    queued.forEach(function(m) { pkSend(m); });
+  };
+  _pkWs.onmessage = function(e) { try { var m = JSON.parse(e.data); pkHandleMessage(m); } catch(ex) {} };
+  _pkWs.onclose = function() {
+    _pkConnected = false;
+    if (_pkInMatch || _pkArenaOpen || _pkActiveInvite || _pkOutgoingInvitePending || _pkWaitingRoom) {
+      showToast('连接断开，正在重连...');
+      setTimeout(function() {
+        if (_pkInMatch || _pkArenaOpen || _pkActiveInvite || _pkOutgoingInvitePending || _pkWaitingRoom) pkConnect();
+      }, 2000);
+    }
+  };
+  _pkWs.onerror = function() {};
+}
+
+function pkDisconnect() {
+  if (_pkWs) { _pkWs.close(); _pkWs = null; }
+  _pkConnected = false;
+}
+
+function pkSend(msg) {
+  if (_pkWs && _pkWs.readyState === WebSocket.OPEN) {
+    _pkWs.send(JSON.stringify(msg));
+    return true;
+  }
+  _pkPendingMessages.push(msg);
+  pkConnect();
+  return false;
+}
+
+function pkHandleMessage(msg) {
+  var type = msg.type, p = msg.payload || {};
+  switch (type) {
+    case 'pk.invite.incoming': pkOnInviteIncoming(p); break;
+    case 'pk.invite.sent': _pkOutgoingInvitePending = true; break;
+    case 'pk.invite.accept': showToast('对方已接受邀请，准备开始！'); pkHideArenaOverlay(); break;
+    case 'pk.invite.error': pkOnInviteFailed(p.message || '邀请失败'); break;
+    case 'pk.invite.cooldown': pkOnInviteCooldown(p); break;
+    case 'pk.invite.reject': pkOnInviteFailed('对方拒绝了邀请'); break;
+    case 'pk.invite.rejected': pkOnInviteFailed(p.message || '对方拒绝了邀请'); break;
+    case 'pk.invite.expired': pkOnInviteFailed('邀请已过期'); break;
+    case 'pk.error': showToast(p.message || '操作失败，请重试'); break;
+    case 'pk.room.started': pkOnRoomStarted(p); break;
+    case 'pk.question.started': pkOnQuestionStarted(p); break;
+    case 'pk.buzz.result': pkOnBuzzResult(p); break;
+    case 'pk.answer.result': pkOnAnswerResult(p); break;
+    case 'pk.score.updated': pkOnScoreUpdated(p); break;
+    case 'pk.match.finished': pkOnMatchFinished(p); break;
+    case 'pk.opponent.left': pkOnOpponentLeft(p); break;
+    case 'pk.rematch.requested': pkOnRematchRequested(p); break;
+    case 'pk.rematch.rejected': showToast(p.message || '再战已取消'); pkRenderRematchNotice(''); break;
+    case 'pk.rematch.error': showToast(p.message || '再战失败'); break;
+  }
+}
+
+// ---- Arena ----
+function pkOpenArena() {
+  _pkArenaOpen = true;
+  pkConnect();
+  document.getElementById('pkArenaOverlay').classList.add('show');
+  pkLoadArenaUsers();
+  pkLoadSettings();
+  pkLoadRecentMatches();
+}
+
+function pkCloseArena() {
+  _pkArenaOpen = false;
+  document.getElementById('pkArenaOverlay').classList.remove('show');
+  if (!_pkInMatch && !_pkActiveInvite && !_pkOutgoingInvitePending) pkDisconnect();
+}
+
+function pkHideArenaOverlay() {
+  _pkArenaOpen = false;
+  document.getElementById('pkArenaOverlay').classList.remove('show');
+}
+
+async function pkLoadArenaUsers() {
+  var list = document.getElementById('pkArenaList');
+  try {
+    var res = await fetch(API + '/api/pk/arena/users', { headers: { 'Authorization': 'Bearer ' + token } });
+    var data = await res.json();
+    if (data.code !== 200 || !data.data || !data.data.length) {
+      list.innerHTML = '<div class="pk-arena-empty">暂无在线用户</div>'; return;
+    }
+    list.innerHTML = data.data.map(function(u) {
+      var name = escapeHtml(String(u.username || ''));
+      var avUrl = safeImageUrl(u.avatarUrl);
+      var initial = getInitial(u.username);
+      var color = getAvatarColor(u.username);
+      var avHtml = avUrl ? '<img src="' + escapeAttr(avUrl) + '" alt="">' : initial;
+      var rank = Number(u.pkRank || 0);
+      var rankText = rank > 0 ? '第' + rank + '名 · ' : '未上榜 · ';
+      var wr = u.winRate != null ? Number(u.winRate).toFixed(0) + '%' : '-';
+      return '<div class="pk-arena-user">' +
+        '<div class="pk-arena-av-wrap">' + pkRenderRankBadge(rank) +
+        '<div class="pk-arena-av" style="background:' + color + '">' + avHtml + '</div></div>' +
+        '<div class="pk-arena-info"><div class="pk-arena-name">' + name + '</div><div class="pk-arena-pts">' + rankText + (u.pkPoints || 0) + ' 分 · 胜率' + wr + '</div></div>' +
+        '<button class="pk-arena-invite" onclick="pkSendInvite(' + u.userId + ',this)">邀请</button></div>';
+    }).join('');
+  } catch(e) { list.innerHTML = '<div class="pk-arena-empty">加载失败</div>'; }
+}
+
+function pkRefreshArenaUsers() {
+  var btn = document.getElementById('pkArenaRefresh');
+  if (btn) { btn.disabled = true; btn.textContent = '刷新中...'; }
+  Promise.all([pkLoadMe(), pkLoadArenaUsers(), pkLoadRecentMatches()]).finally(function() {
+    if (btn) { btn.disabled = false; btn.textContent = '刷新在线状态'; }
+  });
+}
+
+function pkSendInvite(userId, btn) {
+  _pkOutgoingInvitePending = true;
+  pkStartInviteButtonCooldown(btn, 20);
+  pkSend({ type: 'pk.invite.send', payload: { toUserId: userId } });
+}
+
+async function pkLoadSettings() {
+  try {
+    var res = await fetch(API + '/api/pk/settings', { headers: { 'Authorization': 'Bearer ' + token } });
+    var data = await res.json();
+    if (data.code === 200 && data.data) { _pkSettings = data.data; pkUpdateInvisibleUI(); pkFillDeclarations(); }
+  } catch(e) {}
+  pkLoadMe();
+}
+
+async function pkLoadMe() {
+  try {
+    var res = await fetch(API + '/api/pk/me', { headers: { 'Authorization': 'Bearer ' + token } });
+    var data = await res.json();
+    if (data.code === 200 && data.data) { _pkMe = data.data; pkUpdateSummary(); pkUpdateArenaMe(); }
+  } catch(e) {}
+}
+
+function pkUpdateSummary() {
+  var el = document.getElementById('pkSummary');
+  if (el && _pkMe) el.textContent = (_pkMe.points || 0) + '分 ' + (_pkMe.wins || 0) + '胜' + (_pkMe.losses || 0) + '负';
+}
+
+function pkUpdateArenaMe() {
+  var el = document.getElementById('pkArenaMe');
+  if (!el || !_pkMe) return;
+  var matches = Number(_pkMe.matches || 0);
+  var wins = Number(_pkMe.wins || 0);
+  var wr = matches > 0 ? Math.round(wins * 100 / matches) + '%' : '-';
+  el.textContent = '我的战绩：' + (_pkMe.points || 0) + ' 分 · ' + wins + '胜 ' + (_pkMe.losses || 0) + '负 · 胜率' + wr;
+}
+
+function pkToggleInvisible() {
+  _pkSettings.invisible = !_pkSettings.invisible;
+  pkUpdateInvisibleUI();
+  fetch(API + '/api/pk/settings/invisible', {
+    method: 'PUT',
+    headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ invisible: _pkSettings.invisible })
+  }).catch(function() {});
+}
+
+function pkUpdateInvisibleUI() {
+  var track = document.getElementById('pkToggleTrack');
+  var label = document.getElementById('pkToggleLabel');
+  if (_pkSettings.invisible) { track.classList.add('on'); label.textContent = '隐身中'; }
+  else { track.classList.remove('on'); label.textContent = '隐身'; }
+}
+
+function pkOpenDeclarationSettings() {
+  pkFillDeclarations();
+  document.getElementById('pkDeclarationOverlay').style.display = 'flex';
+}
+
+function pkCloseDeclarationSettings(e) {
+  if (e && e.target !== document.getElementById('pkDeclarationOverlay')) return;
+  document.getElementById('pkDeclarationOverlay').style.display = 'none';
+}
+
+function pkFillDeclarations() {
+  ['firstWinDeclaration', 'revengeDeclaration', 'sweepDeclaration', 'finalWinDeclaration'].forEach(function(id) {
+    var input = document.getElementById(id);
+    if (!input) return;
+    input.value = _pkSettings[id] || '';
+    pkUpdateDeclarationCount(id);
+    input.oninput = function() { pkUpdateDeclarationCount(id); };
+  });
+}
+
+function pkUpdateDeclarationCount(id) {
+  var input = document.getElementById(id);
+  var count = document.getElementById(id + 'Count');
+  if (input && count) count.textContent = input.value.length + '/15';
+}
+
+async function pkSaveDeclarations() {
+  var payload = {
+    firstWinDeclaration: document.getElementById('firstWinDeclaration').value.trim(),
+    revengeDeclaration: document.getElementById('revengeDeclaration').value.trim(),
+    sweepDeclaration: document.getElementById('sweepDeclaration').value.trim(),
+    finalWinDeclaration: document.getElementById('finalWinDeclaration').value.trim()
+  };
+  try {
+    var res = await fetch(API + '/api/pk/settings/declarations', {
+      method: 'PUT',
+      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    var data = await res.json();
+    if (data.code === 200) {
+      Object.assign(_pkSettings, payload);
+      pkCloseDeclarationSettings();
+      showToast('胜利宣言已保存');
+    } else {
+      showToast(data.msg || '保存失败');
+    }
+  } catch(e) { showToast('网络错误'); }
+}
+
+async function pkLoadRecentMatches() {
+  var box = document.getElementById('pkRecentMatches');
+  if (!box) return;
+  try {
+    var res = await fetch(API + '/api/pk/matches/recent', { headers: { 'Authorization': 'Bearer ' + token } });
+    var data = await res.json();
+    if (data.code !== 200 || !data.data || !data.data.length) {
+      box.innerHTML = '<div class="pk-arena-empty">还没有可回顾的对局</div>';
+      return;
+    }
+    var myUserId = null;
+    try { myUserId = decodeJwtPayload(token).userId; } catch(e) {}
+    box.innerHTML = data.data.map(function(m) {
+      var isA = Number(m.playerAId) === Number(myUserId);
+      var opponentName = isA ? (m.playerBUsername || '对手') : (m.playerAUsername || '对手');
+      var myScore = isA ? m.playerAScore : m.playerBScore;
+      var oppScore = isA ? m.playerBScore : m.playerAScore;
+      var result = m.winnerUserId == null ? 'draw' : (Number(m.winnerUserId) === Number(myUserId) ? 'win' : 'lose');
+      var label = result === 'win' ? '胜' : result === 'lose' ? '负' : '平';
+      var time = m.finishedAt ? new Date(m.finishedAt).toLocaleString('zh-CN', { month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' }) : '';
+      return '<div class="pk-recent-row">' +
+        '<div class="pk-recent-result ' + result + '">' + label + '</div>' +
+        '<div class="pk-recent-main"><div class="pk-recent-title">对阵 ' + escapeHtml(opponentName) + ' · ' + myScore + ':' + oppScore + '</div>' +
+        '<div class="pk-recent-meta">' + escapeHtml(time) + ' · ' + (m.questionsCompleted || 0) + '题</div></div>' +
+        '<button class="pk-recent-review" onclick="pkOpenReplay(' + m.matchId + ')">复盘</button></div>';
+    }).join('');
+  } catch(e) {
+    box.innerHTML = '<div class="pk-arena-empty">回顾加载失败</div>';
+  }
+}
+
+async function pkOpenReplay(matchId) {
+  var overlay = document.getElementById('pkReplayOverlay');
+  var content = document.getElementById('pkReplayContent');
+  overlay.style.display = 'flex';
+  content.innerHTML = '<div class="pk-arena-empty">加载中...</div>';
+  try {
+    var res = await fetch(API + '/api/pk/matches/replay?matchId=' + encodeURIComponent(matchId), {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    var data = await res.json();
+    if (data.code !== 200 || !data.data) {
+      content.innerHTML = '<div class="pk-arena-empty">' + escapeHtml(data.msg || '复盘加载失败') + '</div>';
+      return;
+    }
+    var questions = data.data.questions || [];
+    if (!questions.length) {
+      content.innerHTML = '<div class="pk-arena-empty">这场对局没有题目快照</div>';
+      return;
+    }
+    content.innerHTML = questions.map(pkReplayQuestionHTML).join('');
+  } catch(e) {
+    content.innerHTML = '<div class="pk-arena-empty">复盘加载失败</div>';
+  }
+}
+
+function pkCloseReplay(e) {
+  if (e && e.target !== document.getElementById('pkReplayOverlay')) return;
+  document.getElementById('pkReplayOverlay').style.display = 'none';
+}
+
+function pkReplayQuestionHTML(q) {
+  var snap = pkParseQuestionSnapshot(q.optionsJson);
+  var options = Array.isArray(snap.options) ? snap.options : [];
+  var isEn2Cn = q.mode === 'en2cn';
+  var questionText = isEn2Cn
+    ? (q.word || '')
+    : ((q.pos ? q.pos + ' ' : '') + (q.meaning || ''));
+  var correct = q.correctAnswer || (isEn2Cn ? q.meaning : q.word);
+  var chosen = q.chosen || '';
+  var answerLine = chosen
+    ? escapeHtml(q.answerUsername || '对手') + ' 选择了「' + escapeHtml(chosen) + '」' + (q.correct ? '，答对' : '，答错')
+    : '本题无人作答';
+  return '<div class="pk-replay-item">' +
+    '<div class="pk-replay-head"><span>第 ' + (Number(q.questionIndex || 0) + 1) + ' 题</span><span>' + (isEn2Cn ? '英译中' : '中译英') + '</span></div>' +
+    '<div class="pk-replay-question">' + escapeHtml(questionText) + '</div>' +
+    '<div class="pk-replay-options">' + options.map(function(opt) {
+      var text = String(opt);
+      var cls = 'pk-replay-option';
+      if (text === correct) cls += ' correct';
+      if (chosen && text === chosen) cls += ' chosen';
+      return '<div class="' + cls + '">' + escapeHtml(text) + '</div>';
+    }).join('') + '</div>' +
+    '<div class="pk-replay-answer">' + answerLine + ' · 正解：' + escapeHtml(correct || '-') + '</div></div>';
+}
+
+function pkParseQuestionSnapshot(raw) {
+  if (!raw) return {};
+  try { return JSON.parse(raw); } catch(e) { return {}; }
+}
+
+function pkOpenRules() {
+  document.getElementById('pkRulesOverlay').style.display = 'flex';
+}
+
+function pkCloseRules(e) {
+  if (e && e.target !== document.getElementById('pkRulesOverlay')) return;
+  document.getElementById('pkRulesOverlay').style.display = 'none';
+}
+
+// ---- Invite ----
+function pkOnInviteIncoming(payload) {
+  if (_pkInMatch) { pkSend({ type: 'pk.invite.reject', payload: { fromUserId: payload.fromUserId } }); return; }
+  if (_pkArenaOpen) pkHideArenaOverlay();
+  _pkActiveInvite = payload;
+  var avEl = document.getElementById('pkInviteAv');
+  var avUrl = safeImageUrl(payload.fromAvatarUrl);
+  var name = payload.fromUsername || '';
+  if (avUrl) { avEl.innerHTML = '<img src="' + escapeAttr(avUrl) + '" alt="">'; avEl.style.background = ''; }
+  else { avEl.textContent = getInitial(name); avEl.style.background = getAvatarColor(name); }
+  document.getElementById('pkInviteName').textContent = escapeHtml(String(name));
+  document.getElementById('pkInviteOverlay').classList.add('show');
+  pkStartInviteCountdown();
+}
+
+function pkStartInviteCountdown() {
+  var remaining = 20;
+  var el = document.getElementById('pkInviteCountdown');
+  el.textContent = remaining + 's';
+  clearInterval(_pkInviteTimer);
+  _pkInviteTimer = setInterval(function() {
+    remaining--;
+    el.textContent = remaining + 's';
+    if (remaining <= 0) { clearInterval(_pkInviteTimer); _pkInviteTimer = null; pkHideInviteModal(); }
+  }, 1000);
+}
+
+function pkAcceptInvite() {
+  if (!_pkActiveInvite) return;
+  _pkWaitingRoom = true;
+  clearInterval(_pkInviteTimer); _pkInviteTimer = null;
+  pkSend({ type: 'pk.invite.accept', payload: { fromUserId: _pkActiveInvite.fromUserId } });
+  showToast('已接受，正在进入对局...');
+  pkHideInviteModal();
+}
+
+function pkRejectInvite() {
+  if (!_pkActiveInvite) return;
+  clearInterval(_pkInviteTimer); _pkInviteTimer = null;
+  pkSend({ type: 'pk.invite.reject', payload: { fromUserId: _pkActiveInvite.fromUserId } });
+  pkHideInviteModal();
+}
+
+function pkHideInviteModal() {
+  document.getElementById('pkInviteOverlay').classList.remove('show');
+  _pkActiveInvite = null;
+  clearInterval(_pkInviteTimer); _pkInviteTimer = null;
+}
+
+function pkOnInviteFailed(message) {
+  _pkOutgoingInvitePending = false;
+  _pkWaitingRoom = false;
+  if (_pkActiveInvite) pkHideInviteModal();
+  pkResetInviteButtons();
+  showToast(message || '邀请失败');
+  if (_pkArenaOpen) pkLoadArenaUsers();
+  if (!_pkInMatch && !_pkArenaOpen && !_pkActiveInvite) pkDisconnect();
+}
+
+function pkOnInviteCooldown(payload) {
+  var seconds = Number(payload.remainingSeconds || payload.cooldownSeconds || 15);
+  var btn = document.querySelector('.pk-arena-invite[data-invite-pending="1"]');
+  if (btn) pkStartInviteButtonCooldown(btn, Math.max(1, seconds));
+  showToast(payload.message || '邀请冷却中');
+}
+
+function pkStartInviteButtonCooldown(btn, seconds) {
+  clearInterval(_pkInviteButtonTimer);
+  var remaining = Math.max(1, Number(seconds || 20));
+  document.querySelectorAll('.pk-arena-invite').forEach(function(b) {
+    b.disabled = true;
+    b.dataset.invitePending = b === btn ? '1' : '0';
+  });
+  function tick() {
+    document.querySelectorAll('.pk-arena-invite').forEach(function(b) {
+      b.textContent = b.dataset.invitePending === '1' ? ('邀请(' + remaining + 's)') : '冷却中';
+    });
+  }
+  tick();
+  _pkInviteButtonTimer = setInterval(function() {
+    remaining--;
+    if (remaining <= 0) {
+      pkResetInviteButtons();
+      return;
+    }
+    tick();
+  }, 1000);
+}
+
+function pkResetInviteButtons() {
+  _pkOutgoingInvitePending = false;
+  clearInterval(_pkInviteButtonTimer);
+  _pkInviteButtonTimer = null;
+  document.querySelectorAll('.pk-arena-invite').forEach(function(b) {
+    b.disabled = false;
+    b.textContent = '邀请';
+    delete b.dataset.invitePending;
+  });
+}
+
+// ---- Match ----
+function pkOnRoomStarted(payload) {
+  _pkOutgoingInvitePending = false;
+  _pkWaitingRoom = false;
+  pkResetInviteButtons();
+  pkHideInviteModal();
+  var myUserId = null;
+  try { myUserId = decodeJwtPayload(token).userId; } catch(e) {}
+  var playerA = payload.playerA || { userId: payload.playerAId };
+  var playerB = payload.playerB || { userId: payload.playerBId };
+  var opponent = (myUserId == payload.playerAId) ? playerB : playerA;
+  _pkInMatch = true;
+  _pkMatch = {
+    roomId: payload.matchId,
+    playerAId: payload.playerAId,
+    playerBId: payload.playerBId,
+    seriesId: payload.seriesId,
+    seriesMatchNo: payload.seriesMatchNo || 1,
+    myScore: 0, opponentScore: 0,
+    userId: myUserId,
+    opponent: opponent || {},
+    questionIndex: 0,
+    totalQuestions: payload.questionsTotal || 20,
+    state: 'waiting_question',
+    resultTimer: null, myChosen: null
+  };
+  document.getElementById('pkArenaOverlay').classList.remove('show');
+  document.getElementById('quizDefault').style.display = 'none';
+  document.getElementById('pkMatchOverlay').classList.add('active');
+  pkUpdateMatchPlayers();
+  document.getElementById('pkMatchProgress').textContent = '准备中...';
+  document.getElementById('pkMatchTimer').textContent = '⏱ --';
+  document.getElementById('pkMatchCard').innerHTML = '<div class="loading-spin"><div class="spinner"></div><div>对手已就位，即将开始...</div></div>';
+}
+
+function pkUpdateMatchPlayers() {
+  var m = _pkMatch; if (!m) return;
+  var meAvatar = _profileData && _profileData.avatarUrl ? _profileData.avatarUrl : '';
+  var oppAvatar = m.opponent && m.opponent.avatarUrl ? m.opponent.avatarUrl : '';
+  var meHTML = pkPlayerHTML(m.userId, '我', m.myScore, true, meAvatar);
+  var oppHTML = pkPlayerHTML(m.opponent.userId, m.opponent.username || '对手', m.opponentScore, false, oppAvatar);
+  document.getElementById('pkMatchPlayers').innerHTML = meHTML + '<span class="pk-match-vs">VS</span>' + oppHTML;
+}
+
+function pkPlayerHTML(userId, username, score, isMe, avatarUrl) {
+  var name = escapeHtml(String(username || ''));
+  var color = getAvatarColor(username);
+  var initial = getInitial(username);
+  var avUrl = safeImageUrl(avatarUrl || '');
+  if (!avUrl && isMe && _profileData && _profileData.avatarUrl) avUrl = safeImageUrl(_profileData.avatarUrl);
+  var avHtml = avUrl ? '<img src="' + escapeAttr(avUrl) + '" alt="">' : initial;
+  return '<div class="pk-match-player">' +
+    '<div class="pk-match-pav" style="background:' + color + '">' + avHtml + '</div>' +
+    '<div class="pk-match-pinfo"><div class="pk-match-pname">' + name + '</div><div class="pk-match-pscore" id="pkScore' + (isMe ? 'Me' : 'Opp') + '">' + (score || 0) + '</div></div></div>';
+}
+
+function pkOnQuestionStarted(payload) {
+  var m = _pkMatch; if (!m) return;
+  clearInterval(_pkQuestionTimer);
+  m.state = 'question_active';
+  m.questionIndex = (payload.questionIndex || 0) + 1;
+  m.currentQuestion = payload;
+  m.myChosen = null;
+  document.getElementById('pkMatchProgress').textContent = '第 ' + m.questionIndex + '/' + m.totalQuestions + ' 题';
+  var seconds = payload.timeoutSeconds || 15;
+  pkStartTimer(seconds);
+  pkRenderMatchQuestion(payload);
+}
+
+function pkStartTimer(seconds) {
+  var remaining = seconds;
+  var el = document.getElementById('pkMatchTimer');
+  el.classList.remove('urgent');
+  el.textContent = '⏱ ' + remaining + 's';
+  clearInterval(_pkQuestionTimer);
+  _pkQuestionTimer = setInterval(function() {
+    remaining--;
+    el.textContent = '⏱ ' + remaining + 's';
+    if (remaining <= 5) el.classList.add('urgent');
+    if (remaining <= 0) {
+      clearInterval(_pkQuestionTimer);
+      _pkQuestionTimer = null;
+      if (_pkMatch && _pkMatch.state === 'question_active') {
+        var status = document.getElementById('pkStatus');
+        if (status) status.textContent = '无人抢答，等待下一题...';
+      }
+    }
+  }, 1000);
+}
+
+function pkRenderMatchQuestion(payload) {
+  var card = document.getElementById('pkMatchCard');
+  var isEn2Cn = payload.mode === 'en2cn';
+  var qHtml = isEn2Cn
+    ? '<span class="pos-tag">' + escapeHtml(payload.pos || '') + '</span>' + escapeHtml(payload.word || '')
+    : escapeHtml((payload.pos || '') + ' ' + (payload.meaning || ''));
+  var opts = (payload.options || []).map(function(opt, i) {
+    return '<button class="pk-option" data-idx="' + i + '" onclick="pkAnswer(this,\'' + escapeAttr(String(opt)) + '\')">' + escapeHtml(opt) + '</button>';
+  }).join('');
+  card.innerHTML = '<div class="pk-question-line">' + qHtml + '</div>' +
+    '<div class="pk-options" id="pkOptions">' + opts + '</div>' +
+    '<div class="pk-status" id="pkStatus"></div>';
+}
+
+function pkAnswer(btn, chosen) {
+  var m = _pkMatch;
+  if (!m || m.state !== 'question_active') return;
+  m.state = 'buzzing';
+  m.myChosen = chosen;
+  var allBtns = document.querySelectorAll('#pkOptions .pk-option');
+  allBtns.forEach(function(b) { b.disabled = true; });
+  pkSend({ type: 'pk.buzz', payload: {} });
+}
+
+function pkOnBuzzResult(payload) {
+  var m = _pkMatch; if (!m) return;
+  m.state = 'buzz_result';
+  var status = document.getElementById('pkStatus');
+  if (payload.buzzedByMe || payload.buzzUserId === m.userId) {
+    status.textContent = '⚡ 你抢答成功！';
+    status.className = 'pk-status good';
+    if (m.myChosen) {
+      pkSend({ type: 'pk.answer.submit', payload: { chosen: m.myChosen, mode: m.currentQuestion && m.currentQuestion.mode } });
+    }
+  } else {
+    status.textContent = '💨 ' + escapeHtml(payload.buzzUsername || '对手') + ' 抢答成功';
+    status.className = 'pk-status';
+    document.querySelectorAll('#pkOptions .pk-option').forEach(function(b) { b.disabled = true; });
+  }
+}
+
+function pkOnAnswerResult(payload) {
+  var m = _pkMatch; if (!m) return;
+  m.state = 'answer_result';
+  pkApplyScores(payload);
+  var status = document.getElementById('pkStatus');
+  var correctAnswer = payload.correctAnswer;
+  var allBtns = document.querySelectorAll('#pkOptions .pk-option');
+  allBtns.forEach(function(b) {
+    if (b.textContent === correctAnswer) b.classList.add('reveal-correct');
+  });
+  if (payload.answerUserId === m.userId) {
+    allBtns.forEach(function(b) {
+      if (b.textContent === payload.chosen) b.classList.add(payload.correct ? 'correct-pick' : 'wrong-pick');
+    });
+    status.textContent = payload.correct ? '✓ 回答正确！+1' : '✗ 回答错误！-1';
+    status.className = payload.correct ? 'pk-status good' : 'pk-status bad';
+  } else {
+    allBtns.forEach(function(b) {
+      if (b.textContent === payload.chosen) b.classList.add(payload.correct ? 'correct-pick' : 'wrong-pick');
+    });
+    status.textContent = (payload.correct ? '✓ ' : '✗ ') + escapeHtml(payload.username || '对手') + (payload.correct ? ' 回答正确' : ' 回答错误');
+    status.className = payload.correct ? 'pk-status good' : 'pk-status bad';
+  }
+  clearInterval(_pkQuestionTimer);
+}
+
+function pkApplyScores(payload) {
+  var m = _pkMatch; if (!m) return;
+  if (payload.scoreA != null && payload.scoreB != null) {
+    if (m.userId == m.playerAId) {
+      m.myScore = payload.scoreA;
+      m.opponentScore = payload.scoreB;
+    } else {
+      m.myScore = payload.scoreB;
+      m.opponentScore = payload.scoreA;
+    }
+  } else {
+    m.myScore = payload.myScore != null ? payload.myScore : m.myScore;
+    m.opponentScore = payload.opponentScore != null ? payload.opponentScore : m.opponentScore;
+  }
+  var meEl = document.getElementById('pkScoreMe');
+  var oppEl = document.getElementById('pkScoreOpp');
+  if (meEl) meEl.textContent = m.myScore;
+  if (oppEl) oppEl.textContent = m.opponentScore;
+}
+
+function pkOnScoreUpdated(payload) {
+  var m = _pkMatch; if (!m) return;
+  pkApplyScores(payload);
+  clearTimeout(m.resultTimer);
+  m.resultTimer = setTimeout(function() {
+    document.getElementById('pkStatus').textContent = '';
+    document.getElementById('pkMatchCard').innerHTML = '<div class="loading-spin"><div class="spinner"></div><div>下一题...</div></div>';
+  }, 2000);
+}
+
+function pkOnMatchFinished(payload) {
+  var m = _pkMatch; if (!m) return;
+  _pkInMatch = false;
+  clearInterval(_pkQuestionTimer); _pkQuestionTimer = null;
+  clearTimeout(m.resultTimer);
+  m.state = 'match_finished';
+  pkApplyScores(payload);
+  var myScore = m.myScore;
+  var oppScore = m.opponentScore;
+  var result = payload.winnerUserId == null ? 'draw' : (payload.winnerUserId == m.userId ? 'win' : 'lose');
+  var ptsDelta = (m.userId == m.playerAId) ? Number(payload.pointsDeltaA || 0) : Number(payload.pointsDeltaB || 0);
+  var title = result === 'win' ? '你赢了！' : result === 'lose' ? '对手获胜' : '平局！';
+  var stamp = payload.winnerUsername ? escapeHtml(payload.winnerUsername) + '胜利刻印' : '胜利刻印';
+  var declaration = payload.winnerDeclaration || (result === 'draw' ? '棋逢对手' : '');
+  var detail = myScore + ' : ' + oppScore;
+  var canRequestRematch = payload.canRequestRematchUserId != null && Number(payload.canRequestRematchUserId) === Number(m.userId);
+  var rematchBtn = canRequestRematch
+    ? '<button class="pk-result-btn secondary" id="pkRematchBtn" onclick="pkRequestRematch()">再战</button>'
+    : '';
+  if (payload.seriesPlayerAWins != null && payload.seriesPlayerBWins != null) {
+    var mySeriesWins = Number(m.userId) === Number(m.playerAId) ? payload.seriesPlayerAWins : payload.seriesPlayerBWins;
+    var oppSeriesWins = Number(m.userId) === Number(m.playerAId) ? payload.seriesPlayerBWins : payload.seriesPlayerAWins;
+    detail += '<br>BO3 ' + mySeriesWins + ' : ' + oppSeriesWins;
+  }
+  if (ptsDelta > 0) detail += '<br>积分 +' + ptsDelta;
+  else if (ptsDelta < 0) detail += '<br>积分 ' + ptsDelta;
+  document.getElementById('pkMatchCard').innerHTML =
+    '<div class="pk-match-result ' + result + '"><div class="result-stamp">' + stamp + '</div>' +
+    '<h2>' + title + '</h2><div class="result-score">' + myScore + ' : ' + oppScore + '</div>' +
+    (declaration ? '<div class="result-declaration">' + escapeHtml(declaration) + '</div>' : '') +
+    '<div class="result-detail">' + detail + '</div>' +
+    '<div class="pk-result-actions"><button class="pk-result-btn secondary" onclick="pkOpenReplay(' + payload.matchId + ')">复盘</button>' +
+    rematchBtn + '<button class="pk-result-btn" onclick="pkBackFromMatch()">返回</button></div><div id="pkRematchNotice"></div></div>';
+  document.getElementById('pkMatchTimer').textContent = '结束';
+  pkLoadMe();
+  pkLoadLeaderboard();
+  pkLoadRecentMatches();
+}
+
+function pkOnOpponentLeft(payload) {
+  var m = _pkMatch; if (!m) return;
+  clearInterval(_pkQuestionTimer); _pkQuestionTimer = null;
+  showToast('对手已离开，正在结算');
+  document.getElementById('pkMatchCard').innerHTML = '<div class="loading-spin"><div class="spinner"></div><div>对手已离开，正在结算...</div></div>';
+}
+
+function pkRequestRematch() {
+  var m = _pkMatch;
+  if (!m || !m.seriesId) return;
+  var btn = document.getElementById('pkRematchBtn');
+  if (btn) { btn.disabled = true; btn.textContent = '等待确认'; }
+  pkSend({ type: 'pk.rematch.request', payload: { seriesId: m.seriesId } });
+}
+
+function pkOnRematchRequested(payload) {
+  var m = _pkMatch;
+  if (!m || payload.seriesId !== m.seriesId) return;
+  if (Number(payload.requesterUserId) === Number(m.userId)) {
+    pkRenderRematchNotice('<div class="result-detail">再战邀请已发出，等待对方确认。</div>');
+    return;
+  }
+  var requester = payload.requester && payload.requester.username ? payload.requester.username : '对手';
+  pkRenderRematchNotice('<div class="result-detail">' + escapeHtml(requester) + ' 请求再战</div>' +
+    '<div class="pk-result-actions"><button class="pk-result-btn secondary" onclick="pkRejectRematch()">拒绝</button>' +
+    '<button class="pk-result-btn" onclick="pkAcceptRematch()">接受再战</button></div>');
+}
+
+function pkRenderRematchNotice(html) {
+  var el = document.getElementById('pkRematchNotice');
+  if (el) el.innerHTML = html || '';
+}
+
+function pkAcceptRematch() {
+  var m = _pkMatch;
+  if (!m || !m.seriesId) return;
+  pkSend({ type: 'pk.rematch.accept', payload: { seriesId: m.seriesId } });
+  pkRenderRematchNotice('<div class="result-detail">正在进入再战...</div>');
+}
+
+function pkRejectRematch() {
+  var m = _pkMatch;
+  if (!m || !m.seriesId) return;
+  pkSend({ type: 'pk.rematch.reject', payload: { seriesId: m.seriesId } });
+  pkRenderRematchNotice('');
+}
+
+function pkExitMatch() {
+  if (_pkInMatch) {
+    if (!confirm('确定退出决斗吗？退出将视为认输。')) return;
+  }
+  pkBackFromMatch();
+}
+
+function pkBackFromMatch() {
+  _pkInMatch = false;
+  clearInterval(_pkQuestionTimer); _pkQuestionTimer = null;
+  document.getElementById('pkMatchOverlay').classList.remove('active');
+  pkDisconnect();
+  loadQuizPage();
+}
+
+// ---- PK Leaderboard ----
+function pkLoadLeaderboard(scope) {
+  if (scope) _pkLbScope = scope;
+  var panelList = document.getElementById('leaderboardList');
+  var modalList = document.getElementById('leaderboardModalList');
+  var legacyList = document.getElementById('pkLbList');
+  var loading = '<div class="lb-loading">加载中...</div>';
+  if (panelList) panelList.innerHTML = loading;
+  if (modalList) modalList.innerHTML = loading;
+  if (legacyList) legacyList.innerHTML = loading;
+  fetch(API + '/api/pk/leaderboard?scope=' + encodeURIComponent(_pkLbScope), {
+    headers: { 'Authorization': 'Bearer ' + token }
+  }).then(function(r) { return r.json(); }).then(function(data) {
+    if (data.code !== 200 || !data.data) {
+      renderPkLeaderboardError('加载失败');
+      return;
+    }
+    var rows = data.data.list || data.data;
+    renderPkLeaderboard(rows || []);
+  }).catch(function() { renderPkLeaderboardError('加载失败'); });
+}
+
+function pkRenderRankBadge(rank) {
+  if (rank === 1) return '<span class="pk-crown gold">👑</span>';
+  if (rank === 2) return '<span class="pk-crown silver">👑</span>';
+  if (rank === 3) return '<span class="pk-crown bronze">👑</span>';
+  return '';
+}
+
+function renderPkLeaderboard(rows) {
+  var targets = ['leaderboardList', 'leaderboardModalList', 'pkLbList'];
+  if (!rows || rows.length === 0) {
+    targets.forEach(function(id) { var el = document.getElementById(id); if (el) el.innerHTML = '<div class="lb-empty">暂无排行数据</div>'; });
+    return;
+  }
+  var myUid = null;
+  try { var p = decodeJwtPayload(token); myUid = p.userId; } catch(e) {}
+  var html = rows.map(function(row, idx) {
+    var rank = Number(row.rank || row.pkRank || (idx + 1));
+    var rawName = String(row.username || '');
+    var name = escapeHtml(rawName);
+    var avUrl = safeImageUrl(row.avatarUrl);
+    var initial = escapeHtml(getInitial(rawName));
+    var color = getAvatarColor(rawName);
+    var avatarHtml = avUrl ? '<img src="' + escapeAttr(avUrl) + '" alt="">' : initial;
+    var isMe = myUid != null && row.userId == myUid;
+    var wr = row.winRate != null ? Number(row.winRate).toFixed(0) + '%' : '-';
+    var today = Number(row.pointsToday || 0);
+    var todayText = today > 0 ? ' 今日+' + today : (today < 0 ? ' 今日' + today : '');
+    var rankCls = rank === 1 ? ' pk-rank1' : rank === 2 ? ' pk-rank2' : rank === 3 ? ' pk-rank3' : '';
+    return '<div class="lb-row' + (isMe ? ' lb-mine' : '') + '">' +
+      '<span class="lb-rank">' + rank + '</span>' +
+      '<div class="lb-avatar-wrap">' + pkRenderRankBadge(rank) +
+      '<div class="lb-avatar' + rankCls + '" style="background:' + color + '">' + avatarHtml + '</div></div>' +
+      '<div class="lb-info">' +
+        '<div class="lb-name" title="' + escapeAttr(rawName) + '">' + name + '</div>' +
+        '<div class="lb-stats">' + (row.points || 0) + '分 · 胜率' + wr + todayText + '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+  targets.forEach(function(id) { var el = document.getElementById(id); if (el) el.innerHTML = html; });
+}
+
+function renderPkLeaderboardError(message) {
+  ['leaderboardList', 'leaderboardModalList', 'pkLbList'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.innerHTML = '<div class="lb-error">' + escapeHtml(message || '加载失败') + '</div>';
+  });
+}
+
+function pkSwitchLeaderboard(scope, btn) {
+  _pkLbScope = scope;
+  var tabs = document.getElementById('pkLbTabs');
+  if (tabs) tabs.querySelectorAll('button').forEach(function(b) { b.classList.remove('active'); });
+  btn.classList.add('active');
+  pkLoadLeaderboard();
+}
+
+// Hook loadQuizPage to also load PK data
+var _origLoadQuizPage = loadQuizPage;
+loadQuizPage = function() {
+  _origLoadQuizPage();
+  renderLeaderboardScopeTabs();
+  pkLoadMe();
+  if (_leaderboardMode === 'pk') pkLoadLeaderboard();
+};
+
+preloadProfile();
 
 </script>
 </body>
