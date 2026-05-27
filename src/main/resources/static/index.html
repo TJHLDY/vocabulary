@@ -1023,11 +1023,11 @@
   .quiz-shell { display: block; }
   .quiz-main-col { min-width: 0; }
   .quiz-top-row { display: grid; grid-template-columns: minmax(220px, 280px) minmax(360px, 1fr) 340px; gap: 16px; margin-bottom: 20px; align-items: stretch; }
-  .quiz-start { text-align: center; padding: 24px 20px; background: var(--paper); border-radius: var(--radius-sm); box-shadow: var(--shadow-sm); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; min-width: 200px; }
-  .quiz-start-btn { display: inline-block; background: var(--accent); color: #fff; border: none; padding: 14px 36px; border-radius: 14px; font-size: 1.05rem; font-family: inherit; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 16px rgba(74,111,165,0.25); }
+  .quiz-start { text-align: center; padding: 24px 20px; background: var(--paper); border-radius: var(--radius-sm); box-shadow: var(--shadow-sm); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; min-width: 0; width: 100%; box-sizing: border-box; }
+  .quiz-start-btn { display: block; width: 100%; box-sizing: border-box; background: var(--accent); color: #fff; border: none; padding: 14px 16px; border-radius: 14px; font-size: 1.05rem; font-family: inherit; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 16px rgba(74,111,165,0.25); white-space: nowrap; }
   .quiz-start-btn:hover { background: var(--accent-hover); transform: translateY(-2px); box-shadow: 0 6px 24px rgba(74,111,165,0.35); }
-  .quiz-mode-switch { display: inline-flex; background: var(--gold-light); border-radius: 10px; padding: 3px; }
-  .quiz-mode-switch button { padding: 8px 16px; font-size: 0.82rem; font-family: inherit; border: none; border-radius: 8px; cursor: pointer; background: none; color: var(--warm); transition: all 0.2s; white-space: nowrap; }
+  .quiz-mode-switch { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); box-sizing: border-box; width: 100%; background: var(--gold-light); border-radius: 10px; padding: 3px; }
+  .quiz-mode-switch button { padding: 8px 4px; font-size: 0.82rem; font-family: inherit; border: none; border-radius: 8px; cursor: pointer; background: none; color: var(--warm); transition: all 0.2s; white-space: nowrap; min-width: 0; }
   .quiz-mode-switch button.active { background: var(--paper); color: var(--accent); box-shadow: 0 2px 8px rgba(0,0,0,0.08); font-weight: 600; }
   .quiz-chart-wrap { flex: 1; background: var(--paper); border-radius: var(--radius-sm); padding: 16px 20px; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; min-width: 0; }
   .quiz-chart-wrap h3 { font-size: 0.85rem; color: var(--ink-light); margin-bottom: 4px; font-weight: 500; }
@@ -1130,7 +1130,7 @@
   .btn-result-continue:hover { background: var(--accent-hover); }
   @media (max-width: 640px) {
     .quiz-top-row { display: flex; flex-direction: column; }
-    .quiz-start { min-width: unset; padding: 18px 16px; gap: 10px; }
+    .quiz-start { min-width: unset; width: 100%; box-sizing: border-box; padding: 18px 16px; gap: 10px; }
     .quiz-chart-wrap { padding: 14px 12px; }
     .quiz-chart { height: 130px; }
     .quiz-card { padding: 32px 20px 28px; }
@@ -1296,7 +1296,7 @@
   }
 
   /* ---- PK ---- */
-  .pk-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
+  .pk-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; width: 100%; box-sizing: border-box; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
   .pk-btn { background: var(--gold); color: #fff; border: none; padding: 8px 18px; border-radius: 8px; font-size: 0.82rem; font-family: inherit; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
   .pk-btn:hover { opacity: 0.88; }
   .pk-btn:disabled { opacity: 0.5; cursor: default; }
@@ -1564,11 +1564,11 @@ function pkCurrentUserId() {
       <div class="quiz-top-row">
         <div class="quiz-start">
           <div class="quiz-mode-switch" id="quizModeSwitch">
-            <button class="active" data-mode="cn2en" onclick="setQuizMode('cn2en', this)">🇨🇳→🇬🇧 中选英</button>
-            <button data-mode="en2cn" onclick="setQuizMode('en2cn', this)">🇬🇧→🇨🇳 英选中</button>
-            <button data-mode="mixed" onclick="setQuizMode('mixed', this)">🔀 混合</button>
+            <button class="active" data-mode="cn2en" onclick="setQuizMode('cn2en', this)" title="中文选英文" aria-label="中文选英文">中→英</button>
+            <button data-mode="en2cn" onclick="setQuizMode('en2cn', this)" title="英文选中文" aria-label="英文选中文">英→中</button>
+            <button data-mode="mixed" onclick="setQuizMode('mixed', this)" title="中英混合" aria-label="中英混合">混合</button>
           </div>
-          <button class="quiz-start-btn" onclick="startQuiz()">📝 开始刷题</button>
+          <button class="quiz-start-btn" onclick="startQuiz()">开始刷题</button>
           <div class="pk-row">
             <button class="pk-btn" onclick="pkOpenArena()">⚔️ 决斗场</button>
             <button class="pk-rule-btn" onclick="pkOpenRules()" title="决斗场规则" aria-label="决斗场规则">?</button>
