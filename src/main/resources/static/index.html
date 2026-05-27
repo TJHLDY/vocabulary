@@ -1409,6 +1409,23 @@
   .pk-result-actions { position: relative; z-index: 1; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
   .pk-result-btn { padding: 10px 20px; border-radius: 8px; font-size: 0.86rem; font-family: inherit; background: var(--accent); color: #fff; border: none; cursor: pointer; }
   .pk-result-btn.secondary { background: var(--paper); color: var(--accent); border: 1px solid var(--border); }
+  .pk-mobile-result { display: none; }
+  .pk-mobile-result.active { display: none; }
+  .pk-mobile-result-main { flex: 1; overflow-y: auto; padding: 22px 18px 14px; display: flex; flex-direction: column; justify-content: center; gap: 14px; }
+  .pk-mobile-result-hero { position: relative; overflow: hidden; border: 1px solid var(--warm-border); border-radius: 8px; background: var(--paper); padding: 22px 18px; text-align: center; box-shadow: 0 8px 28px rgba(0,0,0,0.08); }
+  .pk-mobile-result-hero:before { content: ""; position: absolute; inset: 18px 4px auto; height: 118px; background: url("assets/pk-brush-slash.png") center/contain no-repeat; opacity: 0.16; pointer-events: none; }
+  .pk-mobile-result.lose .pk-mobile-result-hero:before { background-image: url("assets/pk-brush-slash-reverse.png"); }
+  .pk-mobile-stamp { position: relative; z-index: 1; font-size: 0.74rem; color: var(--warm); margin-bottom: 5px; }
+  .pk-mobile-title { position: relative; z-index: 1; font-family: 'Playfair Display', 'Noto Serif SC', serif; font-size: 1.7rem; color: var(--ink); margin: 0 0 6px; letter-spacing: 0; }
+  .pk-mobile-score { position: relative; z-index: 1; font-size: 2.35rem; line-height: 1; font-weight: 800; color: var(--accent); margin-bottom: 10px; }
+  .pk-mobile-declaration { position: relative; z-index: 1; font-family: 'Noto Serif SC', serif; font-size: 1.06rem; font-weight: 700; color: var(--ink); background: rgba(255,255,255,0.62); border: 1px solid var(--warm-border); border-radius: 8px; padding: 10px 12px; overflow-wrap: anywhere; }
+  :root[data-theme="dark"] .pk-mobile-declaration { background: rgba(42,42,54,0.68); }
+  .pk-mobile-detail { border: 1px solid var(--border); border-radius: 8px; background: var(--paper); padding: 12px 14px; color: var(--ink-light); font-size: 0.86rem; line-height: 1.7; text-align: center; }
+  .pk-mobile-rematch-notice { min-height: 0; }
+  .pk-mobile-rematch-card { border: 1px solid var(--warm-border); border-radius: 8px; background: var(--paper); padding: 12px; text-align: center; box-shadow: 0 6px 20px rgba(0,0,0,0.06); }
+  .pk-mobile-rematch-card .result-detail { margin: 0 0 10px; color: var(--ink); font-size: 0.88rem; line-height: 1.5; }
+  .pk-mobile-actions { display: flex; gap: 10px; padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); background: var(--paper); border-top: 1px solid var(--border); box-shadow: 0 -8px 28px rgba(0,0,0,0.08); }
+  .pk-mobile-actions .pk-result-btn { flex: 1; min-height: 48px; padding: 10px 12px; white-space: normal; line-height: 1.25; }
 .pk-replay-list { max-height: 58vh; overflow-y: auto; display: grid; gap: 10px; padding-right: 4px; }
 .pk-replay-item { border: 1px solid var(--border); border-radius: 8px; padding: 12px; background: var(--cream); }
 .pk-replay-head { display: flex; justify-content: space-between; gap: 12px; color: var(--ink-light); font-size: 0.76rem; margin-bottom: 6px; }
@@ -1453,6 +1470,10 @@
     .pk-arena-box { max-height: 60vh; }
     .pk-rule-btn { width: 24px; height: 24px; font-size: 0.75rem; }
     .pk-match-card { padding: 20px 16px; }
+    .pk-match-body.has-mobile-result { display: block; padding: 0; overflow: hidden; }
+    .pk-match-body.has-mobile-result .pk-match-card { display: none; }
+    .pk-match-body.has-mobile-result .pk-mobile-result.active { display: flex; flex-direction: column; height: 100%; min-height: 0; background: var(--cream); }
+    .pk-match-body.has-mobile-result .pk-mobile-actions { position: sticky; bottom: 0; z-index: 3; }
     .pk-question-line { font-size: 1.15rem; }
     .pk-option { padding: 12px 14px; font-size: 0.88rem; }
     .pk-match-player { gap: 4px; padding: 4px; }
@@ -1857,6 +1878,7 @@ function pkCurrentUserId() {
   </div>
   <div class="pk-match-players" id="pkMatchPlayers"></div>
   <div class="pk-match-body">
+    <div class="pk-mobile-result" id="pkMobileResult"></div>
     <div class="pk-match-card" id="pkMatchCard"></div>
   </div>
 </div>
@@ -5122,6 +5144,7 @@ function pkOnRoomStarted(payload) {
   pkUpdateMatchPlayers();
   document.getElementById('pkMatchProgress').textContent = '准备中...';
   document.getElementById('pkMatchTimer').textContent = '⏱ --';
+  pkClearMobileResult();
   document.getElementById('pkMatchCard').innerHTML = '<div class="loading-spin"><div class="spinner"></div><div>对手已就位，即将开始...</div></div>';
 }
 
@@ -5181,6 +5204,7 @@ function pkStartTimer(seconds) {
 }
 
 function pkRenderMatchQuestion(payload) {
+  pkClearMobileResult();
   var card = document.getElementById('pkMatchCard');
   var isEn2Cn = payload.mode === 'en2cn';
   var qHtml = isEn2Cn
@@ -5277,6 +5301,50 @@ function pkOnScoreUpdated(payload) {
   }, 2000);
 }
 
+function pkIsMobileLayout() {
+  return !!(window.matchMedia && window.matchMedia('(max-width: 640px)').matches);
+}
+
+function pkClearMobileResult() {
+  var mobile = document.getElementById('pkMobileResult');
+  if (mobile) {
+    mobile.className = 'pk-mobile-result';
+    mobile.innerHTML = '';
+  }
+  var body = mobile && mobile.parentElement;
+  if (body) body.classList.remove('has-mobile-result');
+}
+
+function pkRenderMobileMatchFinished(payload, view) {
+  var mobile = document.getElementById('pkMobileResult');
+  if (!mobile) return false;
+  var body = mobile.parentElement;
+  if (body) body.classList.add('has-mobile-result');
+  mobile.className = 'pk-mobile-result active ' + view.result;
+  var rematchBtn = view.canRequestRematch
+    ? '<button class="pk-result-btn" id="pkRematchBtn" onclick="pkRequestRematch()">再战</button>'
+    : '';
+  var actions = view.canRequestRematch
+    ? '<button class="pk-result-btn secondary" onclick="pkOpenReplay(' + payload.matchId + ')">复盘</button>' +
+      rematchBtn +
+      '<button class="pk-result-btn secondary" onclick="pkBackFromMatch()">返回</button>'
+    : '<button class="pk-result-btn secondary" onclick="pkOpenReplay(' + payload.matchId + ')">复盘</button>' +
+      '<button class="pk-result-btn" onclick="pkBackFromMatch()">返回</button>';
+  mobile.innerHTML =
+    '<div class="pk-mobile-result-main">' +
+      '<div class="pk-mobile-result-hero">' +
+        '<div class="pk-mobile-stamp">' + view.stamp + '</div>' +
+        '<h2 class="pk-mobile-title">' + view.title + '</h2>' +
+        '<div class="pk-mobile-score">' + view.myScore + ' : ' + view.oppScore + '</div>' +
+        (view.declaration ? '<div class="pk-mobile-declaration">' + escapeHtml(view.declaration) + '</div>' : '') +
+      '</div>' +
+      '<div class="pk-mobile-detail">' + view.detail + '</div>' +
+      '<div class="pk-mobile-rematch-notice" id="pkMobileRematchNotice"></div>' +
+    '</div>' +
+    '<div class="pk-mobile-actions">' + actions + '</div>';
+  return true;
+}
+
 function pkOnMatchFinished(payload) {
   var m = _pkMatch; if (!m) return;
   _pkInMatch = false;
@@ -5303,13 +5371,27 @@ function pkOnMatchFinished(payload) {
   }
   if (ptsDelta > 0) detail += '<br>积分 +' + ptsDelta;
   else if (ptsDelta < 0) detail += '<br>积分 ' + ptsDelta;
-  document.getElementById('pkMatchCard').innerHTML =
-    '<div class="pk-match-result ' + result + '"><div class="result-stamp">' + stamp + '</div>' +
-    '<h2>' + title + '</h2><div class="result-score">' + myScore + ' : ' + oppScore + '</div>' +
-    (declaration ? '<div class="result-declaration">' + escapeHtml(declaration) + '</div>' : '') +
-    '<div class="result-detail">' + detail + '</div>' +
-    '<div class="pk-result-actions"><button class="pk-result-btn secondary" onclick="pkOpenReplay(' + payload.matchId + ')">复盘</button>' +
-    rematchBtn + '<button class="pk-result-btn" onclick="pkBackFromMatch()">返回</button></div><div id="pkRematchNotice"></div></div>';
+  if (pkIsMobileLayout() && pkRenderMobileMatchFinished(payload, {
+    result: result,
+    title: title,
+    stamp: stamp,
+    declaration: declaration,
+    detail: detail,
+    myScore: myScore,
+    oppScore: oppScore,
+    canRequestRematch: canRequestRematch
+  })) {
+    document.getElementById('pkMatchCard').innerHTML = '';
+  } else {
+    pkClearMobileResult();
+    document.getElementById('pkMatchCard').innerHTML =
+      '<div class="pk-match-result ' + result + '"><div class="result-stamp">' + stamp + '</div>' +
+      '<h2>' + title + '</h2><div class="result-score">' + myScore + ' : ' + oppScore + '</div>' +
+      (declaration ? '<div class="result-declaration">' + escapeHtml(declaration) + '</div>' : '') +
+      '<div class="result-detail">' + detail + '</div>' +
+      '<div class="pk-result-actions"><button class="pk-result-btn secondary" onclick="pkOpenReplay(' + payload.matchId + ')">复盘</button>' +
+      rematchBtn + '<button class="pk-result-btn" onclick="pkBackFromMatch()">返回</button></div><div id="pkRematchNotice"></div></div>';
+  }
   document.getElementById('pkMatchTimer').textContent = '结束';
   pkLoadMe();
   pkLoadLeaderboard();
@@ -5335,18 +5417,23 @@ function pkOnRematchRequested(payload) {
   var m = _pkMatch;
   if (!m || payload.seriesId !== m.seriesId) return;
   if (Number(payload.requesterUserId) === Number(m.userId)) {
-    pkRenderRematchNotice('<div class="result-detail">再战邀请已发出，等待对方确认。</div>');
+    pkRenderRematchNotice('<div class="result-detail">再战邀请已发出，等待对方确认。</div>', '<div class="pk-mobile-rematch-card"><div class="result-detail">再战邀请已发出，等待对方确认。</div></div>');
     return;
   }
   var requester = payload.requester && payload.requester.username ? payload.requester.username : '对手';
   pkRenderRematchNotice('<div class="result-detail">' + escapeHtml(requester) + ' 请求再战</div>' +
     '<div class="pk-result-actions"><button class="pk-result-btn secondary" onclick="pkRejectRematch()">拒绝</button>' +
-    '<button class="pk-result-btn" onclick="pkAcceptRematch()">接受再战</button></div>');
+    '<button class="pk-result-btn" onclick="pkAcceptRematch()">接受再战</button></div>',
+    '<div class="pk-mobile-rematch-card"><div class="result-detail">' + escapeHtml(requester) + ' 请求再战</div>' +
+    '<div class="pk-result-actions"><button class="pk-result-btn secondary" onclick="pkRejectRematch()">拒绝</button>' +
+    '<button class="pk-result-btn" onclick="pkAcceptRematch()">接受再战</button></div></div>');
 }
 
-function pkRenderRematchNotice(html) {
+function pkRenderRematchNotice(html, mobileHtml) {
   var el = document.getElementById('pkRematchNotice');
   if (el) el.innerHTML = html || '';
+  var mobile = document.getElementById('pkMobileRematchNotice');
+  if (mobile) mobile.innerHTML = mobileHtml != null ? mobileHtml : (html || '');
 }
 
 function pkAcceptRematch() {
@@ -5373,6 +5460,7 @@ function pkExitMatch() {
 function pkBackFromMatch() {
   _pkInMatch = false;
   clearInterval(_pkQuestionTimer); _pkQuestionTimer = null;
+  pkClearMobileResult();
   document.getElementById('pkMatchOverlay').classList.remove('active');
   pkDisconnect();
   loadQuizPage();
