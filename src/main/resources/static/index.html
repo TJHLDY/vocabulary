@@ -1481,6 +1481,11 @@ function decodeJwtPayload(rawToken) {
     return null;
   }
 }
+
+function pkCurrentUserId() {
+  var payload = decodeJwtPayload(token) || {};
+  return payload.userId || payload.sub || payload.id || null;
+}
 (function() {
   const payload = decodeJwtPayload(localStorage.getItem('token'));
   if (!payload || (payload.exp && payload.exp * 1000 <= Date.now())) {
@@ -4897,8 +4902,7 @@ async function pkLoadRecentMatches() {
       box.innerHTML = '<div class="pk-arena-empty">还没有可回顾的对局</div>';
       return;
     }
-    var myUserId = null;
-    try { myUserId = decodeJwtPayload(token).userId; } catch(e) {}
+    var myUserId = pkCurrentUserId();
     box.innerHTML = data.data.map(function(m) {
       var isA = Number(m.playerAId) === Number(myUserId);
       var opponentName = isA ? (m.playerBUsername || '对手') : (m.playerAUsername || '对手');
@@ -5093,8 +5097,7 @@ function pkOnRoomStarted(payload) {
   _pkWaitingRoom = false;
   pkResetInviteButtons();
   pkHideInviteModal();
-  var myUserId = null;
-  try { myUserId = decodeJwtPayload(token).userId; } catch(e) {}
+  var myUserId = pkCurrentUserId();
   var playerA = payload.playerA || { userId: payload.playerAId };
   var playerB = payload.playerB || { userId: payload.playerBId };
   var opponent = (myUserId == payload.playerAId) ? playerB : playerA;

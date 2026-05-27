@@ -16,5 +16,8 @@ assert.match(html, /第 1\/20 题/, 'PK static progress text should reflect 20 q
 assert.match(html, /pkRequestRematch/, 'settlement should expose rematch request action');
 assert.match(html, /pk\.rematch\.accept/, 'frontend should accept BO3 rematch requests');
 assert.match(html, /BO3/, 'settlement should show BO3 series score');
+assert.match(html, /function pkCurrentUserId\(\)/, 'PK should resolve the current user id through one helper');
+assert.match(html, /payload\.userId \|\| payload\.sub \|\| payload\.id/, 'PK current user id should fall back to JWT subject');
+assert.ok(!html.includes('decodeJwtPayload(token).userId'), 'PK should not assume JWT contains userId claim');
 
 console.log('pk phase two ui ok');
